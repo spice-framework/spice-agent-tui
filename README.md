@@ -10,4 +10,3 @@ contract. See `ARCHITECTURE.md` and `ROADMAP.md` for the adoption sequence.
 
 Go 1.26.5 is exact. Use `make fast` while editing, `make check` for the broader
 loop, and `make verify` before every commit.
-

@@ -12,4 +12,3 @@ instance-owned, redacted, and excluded from logs and crash reports.
 Phase 0 has no runtime or third-party product dependencies. Build tools are
 pinned in `tools/go.mod`, execute only during local verification, and receive
 the same vulnerability and checksum review as product dependencies.
-

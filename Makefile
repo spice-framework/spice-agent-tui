@@ -8,4 +8,3 @@ check:
 
 verify:
 	go run ./internal/qualitygate -mode=verify
-

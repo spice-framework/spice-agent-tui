@@ -25,4 +25,3 @@ quality boundaries; it does not invent those contracts.
 Work directly on local `main` in bounded commits. Fetch before work and again
 before push. Every commit must pass `make verify`; use `make fast` and
 `make check` for shorter feedback. Stop if `origin/main` moves unexpectedly.
-

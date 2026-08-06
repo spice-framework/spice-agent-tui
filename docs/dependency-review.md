@@ -22,4 +22,3 @@ goimports/x-tools 0.48.0, gosec 2.28.0, govulncheck 1.1.4, and NilAway at
 `f4f8ac24c032`. They are build-time-only dependencies. The quality gate prepares
 them explicitly, then runs analysis with `GOPROXY=off`, `GOWORK=off`, and the
 local Go 1.26.5 toolchain.
-

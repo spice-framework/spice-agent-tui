@@ -14,4 +14,3 @@ make verify
 `make verify` is the commit gate. Dependency additions require an update to
 `docs/dependency-review.md` covering maintenance, license, supply-chain risk,
 cancellation, observability, and platform behavior.
-

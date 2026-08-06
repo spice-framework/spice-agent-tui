@@ -24,4 +24,3 @@ its cancellation, accessibility, Windows, and Linux tests exist.
 `compatibility.json` records Go 1.26.5 and explicit null values for contracts
 that do not exist yet. Replacing a null requires an architecture decision,
 immutable version selection, and executable compatibility tests.
-

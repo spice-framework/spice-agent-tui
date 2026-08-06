@@ -18,4 +18,3 @@
 - [ ] Review and, if selected, pin Bubble Tea for production presentation code.
 - [ ] Implement accessible keyboard navigation, resizing, streaming, and errors.
 - [ ] Verify packaged Windows and Linux executables against a real daemon.
-
