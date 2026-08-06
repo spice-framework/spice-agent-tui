@@ -4,9 +4,12 @@ go 1.26.0
 
 toolchain go1.26.5
 
+tool github.com/spice-framework/spice-agent-tui/cmd/spice-agent-tui-annotations
+
 require (
 	charm.land/bubbletea/v2 v2.0.8
 	github.com/charmbracelet/x/ansi v0.11.7
+	github.com/spice-framework/spice v0.1.0-preview.1
 )
 
 require (

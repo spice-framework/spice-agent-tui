@@ -11,10 +11,11 @@ protocol, daemon, and distribution contracts.
 - [x] Establish Apache-2.0 licensing and governance.
 - [x] Enforce Go 1.26.5 with cross-platform fast/check/verify gates.
 - [x] Publish the bounded UI-neutral values needed by real presentation code.
-- [x] Record explicit unselected compatibility boundaries.
-- [ ] With the first real generated TUI slice, pin exact compatible Spice core
-      and toolchain versions, publish the TUI starter manifest, and register its
-      compatibility and verification gates in the development catalog.
+- [x] Record explicit selected and unselected compatibility boundaries.
+- [x] Pin Spice core v0.1.0-preview.1 and publish the explicit-constructor TUI
+      starter manifest without claiming shell auto-configuration.
+- [ ] With the first real generated TUI slice, pin the exact compatible
+      toolchain version and register compatibility gates in the development catalog.
 
 The checked items describe this repository's scaffold only. Its portion of the
 canonical multi-repository foundation is not complete until the pending pin,
@@ -34,6 +35,12 @@ manifest, and catalog work above can be proved by executable product code.
 - [x] Review and pin Bubble Tea v2.0.8 with the first production shell code.
 - [x] Implement the deterministic shell/model skeleton, renderer, editor, and
       keybindings without faking application integration.
+- [x] Publish `@UIShell` and `@UIRenderer` through a typed v1alpha2 Go tool;
+      preserve generic compiler ownership of exact interface identity.
+- [ ] Adopt generic `Invocation.Facts` type-domain support from Spice/toolchain
+      to enforce exact `Shell` and `Renderer` annotation results, including aliases.
+- [ ] Add shell auto-configuration only after model, client, input, and output
+      ownership contracts are stable.
 - [ ] Adopt application commands only after the client/session contract exists.
 - [ ] Implement accessible keyboard navigation, resizing, streaming, and errors.
 - [ ] Verify packaged Windows and Linux executables against a real daemon.

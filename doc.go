@@ -6,4 +6,7 @@
 // not define or discover a daemon, transport, coding-agent client, annotation
 // model, generated application, or executable entrypoint. Those boundaries must
 // be explicitly injected after their owning contracts are adopted.
+//
+// @import { Module } from "github.com/spice-framework/spice/annotation/modulith"
+// @Module
 package agenttui

@@ -25,6 +25,7 @@ import (
 const (
 	requiredGoVersion = "go1.26.5"
 	modulePath        = "github.com/spice-framework/spice-agent-tui"
+	annotationTool    = modulePath + "/cmd/spice-agent-tui-annotations"
 	minimumCoverage   = 85.0
 )
 
@@ -116,6 +117,8 @@ func checkIdentity(root string) error {
 		"\ntoolchain go1.26.5\n",
 		"charm.land/bubbletea/v2 v2.0.8",
 		"github.com/charmbracelet/x/ansi v0.11.7",
+		"github.com/spice-framework/spice v0.1.0-preview.1",
+		"tool " + annotationTool,
 	} {
 		if strings.Count(normalized, required) != 1 {
 			return fmt.Errorf("go.mod must contain exactly one %q", strings.TrimSpace(required))
@@ -157,8 +160,8 @@ func validateCompatibility(content []byte) error {
 	}
 	if value.Schema != 1 || value.Go != "1.26.5" || value.SpiceAgentClient != nil ||
 		value.SpiceAgentUIValues == nil || *value.SpiceAgentUIValues != "v0.1.0-dev" ||
-		value.SpiceCore != nil || value.SpiceToolchain != nil {
-		return errors.New("compatibility metadata must record Go 1.26.5, local UI values v0.1.0-dev, and explicit null external contracts")
+		value.SpiceCore == nil || *value.SpiceCore != "v0.1.0-preview.1" || value.SpiceToolchain != nil {
+		return errors.New("compatibility metadata must record Go 1.26.5, local UI values v0.1.0-dev, Spice core v0.1.0-preview.1, and explicit null client/toolchain contracts")
 	}
 	return nil
 }
@@ -421,7 +424,10 @@ func offline(ctx context.Context, root string) error {
 	if err := command(ctx, root, environment, "go", append([]string{"test", "-count=1"}, packages...)...); err != nil {
 		return err
 	}
-	return command(ctx, root, environment, "go", append([]string{"build", "-trimpath"}, packages...)...)
+	if err := command(ctx, root, environment, "go", append([]string{"build", "-trimpath"}, packages...)...); err != nil {
+		return err
+	}
+	return command(ctx, root, environment, "go", "tool", annotationTool, "--spice-stdio")
 }
 
 func toolPath(ctx context.Context, root, name string) (string, error) {

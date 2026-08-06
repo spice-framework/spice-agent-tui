@@ -21,3 +21,13 @@ Product dependencies are pinned and vendored; their review is recorded in
 `docs/dependency-review.md`. Build tools are independently pinned in
 `tools/go.mod`, execute only during local verification, and receive the same
 vulnerability and checksum review as product dependencies.
+
+The annotation executable is a trusted native Go tool, not a sandbox. A
+consuming application's root `go.mod` must authorize its fully qualified package
+path, and standard Go module versions, checksums, vendor state, and replacements
+remain visible. The tool never downloads dependencies, scans packages, executes
+annotated factories, or writes generated files. It accepts only framed v1alpha2
+stdio requests, validates exact descriptor/tool identities, bounds work through
+caller cancellation, writes protocol frames exclusively to stdout, and reports
+process diagnostics to stderr. Its handlers return generic compiler metadata;
+they do not perform string-based type matching or runtime reflection.

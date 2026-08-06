@@ -39,6 +39,14 @@ github.com/muesli/cancelreader
 # github.com/rivo/uniseg v0.4.7
 ## explicit; go 1.18
 github.com/rivo/uniseg
+# github.com/spice-framework/spice v0.1.0-preview.1
+## explicit; go 1.26.0
+github.com/spice-framework/spice/annotation
+github.com/spice-framework/spice/annotation/sdk
+github.com/spice-framework/spice/annotation/sdk/protocol
+github.com/spice-framework/spice/annotation/sdk/sdktest
+github.com/spice-framework/spice/annotation/sdk/starter
+github.com/spice-framework/spice/starter
 # github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 ## explicit; go 1.19
 github.com/xo/terminfo

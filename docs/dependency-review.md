@@ -2,6 +2,24 @@
 
 ## Product graph
 
+### Spice core v0.1.0-preview.1
+
+`github.com/spice-framework/spice` is pinned exactly at v0.1.0-preview.1 and is
+Apache-2.0 licensed. This module uses its public annotation SDK v1alpha2,
+framed protocol server, starter manifest, lifecycle provider contract metadata,
+and Modulith declaration annotations. It does not import Spice compiler,
+toolchain, CLI, generated transport, or internal packages.
+
+The annotation SDK carries immutable typed contributions. TUI handlers emit only
+provider and bean-selection metadata; exact Go interface and alias resolution is
+performed later by the consuming toolchain's generic typed compiler. The stdio
+server receives caller-owned streams and cancellation and performs no network,
+filesystem, logging, telemetry, discovery, or background update work.
+
+The dependency is pre-1.0 and therefore intentionally exact. Upgrading requires
+descriptor decode, protocol framing, starter compatibility, contribution wire,
+vendor-offline, and full generated-compiler compatibility review.
+
 ### Bubble Tea v2.0.8
 
 The presentation package imports `charm.land/bubbletea/v2` at exactly v2.0.8.
