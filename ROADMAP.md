@@ -12,6 +12,13 @@ protocol, daemon, and distribution contracts.
 - [x] Enforce Go 1.26.5 with cross-platform fast/check/verify gates.
 - [x] Reserve package ownership without publishing speculative APIs.
 - [x] Record explicit unselected compatibility boundaries.
+- [ ] With the first real generated TUI slice, pin exact compatible Spice core
+      and toolchain versions, publish the TUI starter manifest, and register its
+      compatibility and verification gates in the development catalog.
+
+The checked items describe this repository's scaffold only. Its portion of the
+canonical multi-repository foundation is not complete until the pending pin,
+manifest, and catalog work above can be proved by executable product code.
 
 ## Adopted dependencies
 
