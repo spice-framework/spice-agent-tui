@@ -7,6 +7,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/charmbracelet/x/ansi"
 )
 
 const (
@@ -16,6 +18,8 @@ const (
 	MaximumPromptBytes = 4 << 10
 	// MaximumActivityItems bounds one rendered activity snapshot.
 	MaximumActivityItems = 128
+	// MaximumPromptHistoryItems bounds presentation-owned input history.
+	MaximumPromptHistoryItems = 64
 	// MaximumViewBytes bounds aggregate semantic text before rendering.
 	MaximumViewBytes = 64 << 10
 	// MaximumFrameBytes bounds a rendered frame including ANSI styling.
@@ -174,6 +178,10 @@ const (
 	StatusReady StatusLevel = "ready"
 	// StatusBusy indicates bounded work in progress.
 	StatusBusy StatusLevel = "busy"
+	// StatusDisconnected indicates that no session is currently available.
+	StatusDisconnected StatusLevel = "disconnected"
+	// StatusReconnecting indicates an explicit bounded reconnection attempt.
+	StatusReconnecting StatusLevel = "reconnecting"
 	// StatusWarning indicates degraded but usable state.
 	StatusWarning StatusLevel = "warning"
 	// StatusError indicates a visible failure.
@@ -181,7 +189,8 @@ const (
 )
 
 func validStatusLevel(level StatusLevel) bool {
-	return level == StatusReady || level == StatusBusy || level == StatusWarning || level == StatusError
+	return level == StatusReady || level == StatusBusy || level == StatusDisconnected ||
+		level == StatusReconnecting || level == StatusWarning || level == StatusError
 }
 
 // StatusState is an immutable StatusBar implementation.
@@ -330,8 +339,11 @@ func DarkTheme() ThemeState {
 
 // Frame is one immutable rendered terminal frame.
 type Frame struct {
-	content string
-	size    Size
+	content       string
+	size          Size
+	cursorX       int
+	cursorY       int
+	cursorVisible bool
 }
 
 // NewFrame constructs a bounded rendered frame.
@@ -343,8 +355,25 @@ func NewFrame(content string, size Size) (Frame, error) {
 // Content returns rendered terminal content.
 func (frame Frame) Content() string { return frame.content }
 
+// PlainContent returns the same fixed-size frame without terminal styling.
+// Status levels remain visible text and never depend on color alone.
+func (frame Frame) PlainContent() string { return ansi.Strip(frame.content) }
+
 // Size returns the rendered size.
 func (frame Frame) Size() Size { return frame.size }
+
+// WithCursor returns a frame with a visible, cell-addressed terminal cursor.
+func (frame Frame) WithCursor(x, y int) (Frame, error) {
+	frame.cursorX = x
+	frame.cursorY = y
+	frame.cursorVisible = true
+	return frame, frame.Validate()
+}
+
+// Cursor returns the cursor cell and whether it is visible.
+func (frame Frame) Cursor() (x, y int, visible bool) {
+	return frame.cursorX, frame.cursorY, frame.cursorVisible
+}
 
 // Validate reports whether the frame is bounded and has a valid terminal size.
 func (frame Frame) Validate() error {
@@ -353,6 +382,10 @@ func (frame Frame) Validate() error {
 	}
 	if len(frame.content) > MaximumFrameBytes {
 		return fmt.Errorf("rendered frame exceeds %d bytes", MaximumFrameBytes)
+	}
+	if frame.cursorVisible && (frame.cursorX < 0 || frame.cursorX >= frame.size.Width() ||
+		frame.cursorY < 0 || frame.cursorY >= frame.size.Height()) {
+		return errors.New("rendered cursor is outside the frame")
 	}
 	return nil
 }

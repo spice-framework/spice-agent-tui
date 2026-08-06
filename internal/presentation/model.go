@@ -11,14 +11,19 @@ import (
 // Model is the deterministic Bubble Tea v2 presentation state. It owns no
 // client, daemon, transport, annotation, or generated-application behavior.
 type Model struct {
-	renderer  agenttui.Renderer
-	workspace agenttui.WorkspaceState
-	status    agenttui.StatusState
-	editor    agenttui.EditorState
-	activity  []agenttui.Text
-	bindings  []agenttui.Binding
-	theme     agenttui.ThemeState
-	size      agenttui.Size
+	renderer      agenttui.Renderer
+	workspace     agenttui.WorkspaceState
+	status        agenttui.StatusState
+	editor        agenttui.EditorState
+	activity      []agenttui.Text
+	bindings      []agenttui.Binding
+	theme         agenttui.ThemeState
+	size          agenttui.Size
+	revision      uint64
+	accessible    bool
+	promptHistory []agenttui.Text
+	historyIndex  int
+	historyDraft  agenttui.EditorState
 }
 
 // NewModel constructs a bounded presentation model from immutable snapshots.
@@ -46,8 +51,17 @@ func NewModel(
 	return Model{
 		renderer: renderer, workspace: workspace, status: status, editor: editor,
 		activity: append([]agenttui.Text(nil), activity...), bindings: bindings,
-		theme: theme, size: agenttui.BoundedSize(80, 24),
+		theme: theme, size: agenttui.BoundedSize(80, 24), historyIndex: -1,
+		historyDraft: editor,
 	}, nil
+}
+
+// WithAccessibleMode returns a model that renders unstyled text without the
+// alternate screen. Status labels remain explicit and keyboard behavior is
+// unchanged.
+func (model Model) WithAccessibleMode(enabled bool) Model {
+	model.accessible = enabled
+	return model
 }
 
 // Init implements tea.Model without starting background work.
@@ -59,6 +73,12 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		model.size = agenttui.BoundedSize(message.Width, message.Height)
 		return model, nil
+	case SnapshotMsg:
+		return model.applySnapshot(message), nil
+	case ActivityMsg:
+		return model.appendActivity(message), nil
+	case PromptHistoryMsg:
+		return model.applyPromptHistory(message), nil
 	case tea.KeyPressMsg:
 		return model.updateKey(message)
 	default:
@@ -82,14 +102,24 @@ func (model Model) updateKey(message tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			model.editor = model.editor.Move(agenttui.MoveLeft)
 		case agenttui.ActionCursorRight:
 			model.editor = model.editor.Move(agenttui.MoveRight)
+		case agenttui.ActionCursorStart:
+			model.editor = model.editor.Move(agenttui.MoveStart)
+		case agenttui.ActionCursorEnd:
+			model.editor = model.editor.Move(agenttui.MoveEnd)
+		case agenttui.ActionHistoryPrevious:
+			model = model.moveHistory(-1)
+		case agenttui.ActionHistoryNext:
+			model = model.moveHistory(1)
 		case agenttui.ActionBackspace:
 			model.editor = model.editor.Backspace()
+			model = model.detachHistory()
 		}
 		return model, nil
 	}
 	if key.Text() != "" {
 		if editor, insertErr := model.editor.Insert(key.Text()); insertErr == nil {
 			model.editor = editor
+			model = model.detachHistory()
 		}
 	}
 	return model, nil
@@ -99,14 +129,21 @@ func (model Model) updateKey(message tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 func (model Model) View() tea.View {
 	data, err := agenttui.NewViewData(model.workspace, model.status, model.editor, model.activity)
 	if err != nil {
-		return failureView()
+		return failureView(model.accessible)
 	}
 	frame, err := model.renderer.Render(data, model.size, model.theme)
 	if err != nil {
-		return failureView()
+		return failureView(model.accessible)
 	}
-	view := tea.NewView(frame.Content())
-	view.AltScreen = true
+	content := frame.Content()
+	if model.accessible {
+		content = frame.PlainContent()
+	}
+	view := tea.NewView(content)
+	view.AltScreen = !model.accessible
+	if x, y, visible := frame.Cursor(); visible && !model.accessible {
+		view.Cursor = tea.NewCursor(x, y)
+	}
 	return view
 }
 
@@ -116,10 +153,90 @@ func (model Model) Size() agenttui.Size { return model.size }
 // Editor returns the current immutable prompt snapshot.
 func (model Model) Editor() agenttui.EditorState { return model.editor }
 
-func failureView() tea.View {
-	view := tea.NewView("Spice Agent TUI\nrender unavailable")
-	view.AltScreen = true
+// Revision returns the latest accepted streaming presentation revision.
+func (model Model) Revision() uint64 { return model.revision }
+
+// Activity returns a defensive copy of the current bounded activity window.
+func (model Model) Activity() []agenttui.Text { return append([]agenttui.Text(nil), model.activity...) }
+
+// Status returns the current explicit presentation status.
+func (model Model) Status() agenttui.StatusState { return model.status }
+
+func failureView(accessible bool) tea.View {
+	view := tea.NewView("Spice Agent TUI\n[ERROR] render unavailable")
+	view.AltScreen = !accessible
 	return view
+}
+
+func (model Model) applySnapshot(message SnapshotMsg) Model {
+	if message.Validate() != nil || message.revision <= model.revision {
+		return model
+	}
+	model.workspace = message.workspace
+	model.status = message.status
+	model.activity = append([]agenttui.Text(nil), message.activity...)
+	model.revision = message.revision
+	return model
+}
+
+func (model Model) appendActivity(message ActivityMsg) Model {
+	if message.Validate() != nil || message.revision <= model.revision {
+		return model
+	}
+	activity := append(append([]agenttui.Text(nil), model.activity...), message.item)
+	for len(activity) > 0 {
+		if _, err := agenttui.NewViewData(model.workspace, model.status, model.editor, activity); err == nil {
+			break
+		}
+		activity = activity[1:]
+	}
+	model.activity = activity
+	model.revision = message.revision
+	return model
+}
+
+func (model Model) applyPromptHistory(message PromptHistoryMsg) Model {
+	if message.Validate() != nil {
+		return model
+	}
+	model.promptHistory = append([]agenttui.Text(nil), message.entries...)
+	model.historyIndex = -1
+	model.historyDraft = model.editor
+	return model
+}
+
+func (model Model) moveHistory(direction int) Model {
+	if len(model.promptHistory) == 0 {
+		return model
+	}
+	if direction < 0 {
+		if model.historyIndex < 0 {
+			model.historyDraft = model.editor
+			model.historyIndex = len(model.promptHistory) - 1
+		} else {
+			model.historyIndex = max(model.historyIndex-1, 0)
+		}
+	} else if model.historyIndex >= 0 {
+		model.historyIndex++
+		if model.historyIndex >= len(model.promptHistory) {
+			model.historyIndex = -1
+			model.editor = model.historyDraft
+			return model
+		}
+	}
+	if model.historyIndex >= 0 {
+		editor, err := agenttui.NewEditor(model.promptHistory[model.historyIndex].String())
+		if err == nil {
+			model.editor = editor
+		}
+	}
+	return model
+}
+
+func (model Model) detachHistory() Model {
+	model.historyIndex = -1
+	model.historyDraft = model.editor
+	return model
 }
 
 func defaultBindings() ([]agenttui.Binding, error) {
@@ -131,6 +248,10 @@ func defaultBindings() ([]agenttui.Binding, error) {
 		{action: agenttui.ActionQuit, keys: []string{"ctrl+c"}, help: "ctrl+c quit"},
 		{action: agenttui.ActionCursorLeft, keys: []string{"left"}, help: "← move"},
 		{action: agenttui.ActionCursorRight, keys: []string{"right"}, help: "→ move"},
+		{action: agenttui.ActionCursorStart, keys: []string{"home", "ctrl+a"}, help: "home start"},
+		{action: agenttui.ActionCursorEnd, keys: []string{"end", "ctrl+e"}, help: "end finish"},
+		{action: agenttui.ActionHistoryPrevious, keys: []string{"up"}, help: "↑ history"},
+		{action: agenttui.ActionHistoryNext, keys: []string{"down"}, help: "↓ history"},
 		{action: agenttui.ActionBackspace, keys: []string{"backspace"}, help: "backspace delete"},
 	}
 	result := make([]agenttui.Binding, 0, len(specifications))

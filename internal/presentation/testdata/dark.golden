@@ -6,5 +6,5 @@
 <ESC>[38;2;226;232;240m• visit scheduled<ESC>[0m
 <ESC>[38;2;226;232;240m• email queued<ESC>[0m
 
-<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240mowner│<ESC>[0m
-<ESC>[38;2;250;204;21m<ESC>[1mWARNING disconnected<ESC>[0m<ESC>[38;2;148;163;184m  ctrl+c quit · r retry<ESC>[0m
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240mowner<ESC>[0m
+<ESC>[38;2;250;204;21m<ESC>[1m[DISCONNECTED] session unavailable<ESC>[0m<ESC>[38;2;148;163;184m  ctrl+c quit<ESC>[0m

@@ -26,8 +26,19 @@ cursor positions are Unicode rune boundaries.
 
 `internal/presentation` owns deterministic terminal rendering, input translation,
 and the Bubble Tea program lifecycle. The renderer is pure: a semantic snapshot,
-bounded size, and theme always produce the same fixed-size frame. Bubble Tea
-v2.0.8 is pinned through its canonical `charm.land/bubbletea/v2` module path.
+bounded size, and theme always produce the same fixed-size frame. Its terminal
+cursor is a validated display-cell coordinate, while editing moves only across
+Unicode grapheme boundaries. Accessible mode emits the same explicit status
+semantics without ANSI or alternate-screen presentation. Bubble Tea v2.0.8 is
+pinned through its canonical `charm.land/bubbletea/v2` module path.
+
+Presentation state accepts validated, monotonically revisioned snapshot and
+activity messages. Stale revisions are ignored, activity is a rolling
+oldest-first-evicted window within the public item and byte bounds, and injected
+prompt history is capped at 64 entries. These messages are deliberately
+client-neutral: they perform no I/O and define no daemon, transport, reconnect
+timer, retry command, or session ownership. An adopted session may translate
+its immutable events into this boundary later.
 
 `annotation/ui` is the only public descendant annotation package and is the
 module's named `annotations` interface. Each annotation has one canonical file

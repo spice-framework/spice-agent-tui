@@ -41,8 +41,13 @@ manifest, and catalog work above can be proved by executable product code.
       preserve generic compiler ownership of exact interface identity.
 - [x] Adopt generic `Invocation.Facts` type-domain support from Spice/toolchain
       to enforce exact `Shell` and `Renderer` annotation results, including aliases.
+- [x] Complete the independent presentation layer: accessible status semantics,
+      grapheme-safe editing and cursor placement, deterministic resize,
+      revisioned snapshot/activity updates, bounded prompt history, keyboard
+      navigation, multi-size light/dark goldens, and clean Ctrl-C cancellation.
 - [ ] Add shell auto-configuration only after model, client, input, and output
       ownership contracts are stable.
 - [ ] Adopt application commands only after the client/session contract exists.
-- [ ] Implement accessible keyboard navigation, resizing, streaming, and errors.
+- [ ] Translate the adopted session's stream, reconnect, backpressure, and error
+      contracts into the completed presentation message boundary.
 - [ ] Verify packaged Windows and Linux executables against a real daemon.

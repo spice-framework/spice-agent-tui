@@ -7,16 +7,22 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/rivo/uniseg"
 )
 
 // CursorMove is a relative editor movement.
 type CursorMove int
 
 const (
-	// MoveLeft moves one rune toward the start.
+	// MoveLeft moves one user-perceived character toward the start.
 	MoveLeft CursorMove = -1
-	// MoveRight moves one rune toward the end.
+	// MoveRight moves one user-perceived character toward the end.
 	MoveRight CursorMove = 1
+	// MoveStart moves to the start of the prompt.
+	MoveStart CursorMove = -2
+	// MoveEnd moves to the end of the prompt.
+	MoveEnd CursorMove = 2
 )
 
 // EditorState is an immutable PromptEditor implementation.
@@ -34,7 +40,7 @@ func NewEditor(initial string) (EditorState, error) {
 // Value returns prompt text.
 func (editor EditorState) Value() Text { return Text{value: editor.value} }
 
-// Cursor returns the zero-based rune boundary.
+// Cursor returns the zero-based rune offset at a grapheme boundary.
 func (editor EditorState) Cursor() int { return editor.cursor }
 
 // Validate reports whether prompt text and its rune cursor are well formed.
@@ -42,7 +48,7 @@ func (editor EditorState) Validate() error {
 	if err := validatePromptText(editor.value); err != nil {
 		return err
 	}
-	if editor.cursor < 0 || editor.cursor > utf8.RuneCountInString(editor.value) {
+	if !slices.Contains(graphemeBoundaries(editor.value), editor.cursor) {
 		return errors.New("prompt cursor is outside its text")
 	}
 	return nil
@@ -66,19 +72,26 @@ func (editor EditorState) Insert(value string) (EditorState, error) {
 	if len(result) > MaximumPromptBytes {
 		return EditorState{}, fmt.Errorf("prompt exceeds %d bytes", MaximumPromptBytes)
 	}
-	return EditorState{value: result, cursor: editor.cursor + len(inserted)}, nil
+	cursor := nextGraphemeBoundary(result, editor.cursor+len(inserted))
+	return EditorState{value: result, cursor: cursor}, nil
 }
 
-// Move returns a new editor at the nearest valid cursor boundary.
+// Move returns a new editor at the adjacent user-perceived character boundary.
 func (editor EditorState) Move(direction CursorMove) EditorState {
 	if editor.Validate() != nil {
 		return EditorState{}
 	}
+	boundaries := graphemeBoundaries(editor.value)
+	index := slices.Index(boundaries, editor.cursor)
 	switch direction {
 	case MoveLeft:
-		editor.cursor = max(editor.cursor-1, 0)
+		editor.cursor = boundaries[max(index-1, 0)]
 	case MoveRight:
-		editor.cursor = min(editor.cursor+1, utf8.RuneCountInString(editor.value))
+		editor.cursor = boundaries[min(index+1, len(boundaries)-1)]
+	case MoveStart:
+		editor.cursor = 0
+	case MoveEnd:
+		editor.cursor = boundaries[len(boundaries)-1]
 	}
 	return editor
 }
@@ -91,9 +104,12 @@ func (editor EditorState) Backspace() EditorState {
 	if editor.cursor == 0 {
 		return editor
 	}
+	boundaries := graphemeBoundaries(editor.value)
+	index := slices.Index(boundaries, editor.cursor)
+	start := boundaries[index-1]
 	current := []rune(editor.value)
-	current = slices.Delete(current, editor.cursor-1, editor.cursor)
-	return EditorState{value: string(current), cursor: editor.cursor - 1}
+	current = slices.Delete(current, start, editor.cursor)
+	return EditorState{value: string(current), cursor: start}
 }
 
 // Clear returns an empty editor.
@@ -111,6 +127,26 @@ func validatePromptText(value string) error {
 	return nil
 }
 
+func graphemeBoundaries(value string) []int {
+	boundaries := []int{0}
+	runeOffset := 0
+	graphemes := uniseg.NewGraphemes(value)
+	for graphemes.Next() {
+		runeOffset += utf8.RuneCountInString(graphemes.Str())
+		boundaries = append(boundaries, runeOffset)
+	}
+	return boundaries
+}
+
+func nextGraphemeBoundary(value string, desired int) int {
+	for _, boundary := range graphemeBoundaries(value) {
+		if boundary >= desired {
+			return boundary
+		}
+	}
+	return utf8.RuneCountInString(value)
+}
+
 // Action identifies one presentation-only keyboard operation.
 type Action string
 
@@ -121,12 +157,22 @@ const (
 	ActionCursorLeft Action = "cursor-left"
 	// ActionCursorRight moves the prompt cursor right.
 	ActionCursorRight Action = "cursor-right"
-	// ActionBackspace removes the previous prompt rune.
+	// ActionCursorStart moves the prompt cursor to the start.
+	ActionCursorStart Action = "cursor-start"
+	// ActionCursorEnd moves the prompt cursor to the end.
+	ActionCursorEnd Action = "cursor-end"
+	// ActionHistoryPrevious selects the previous bounded prompt-history entry.
+	ActionHistoryPrevious Action = "history-previous"
+	// ActionHistoryNext selects the next bounded prompt-history entry.
+	ActionHistoryNext Action = "history-next"
+	// ActionBackspace removes the previous user-perceived character.
 	ActionBackspace Action = "backspace"
 )
 
 func validAction(action Action) bool {
-	return action == ActionQuit || action == ActionCursorLeft || action == ActionCursorRight || action == ActionBackspace
+	return action == ActionQuit || action == ActionCursorLeft || action == ActionCursorRight ||
+		action == ActionCursorStart || action == ActionCursorEnd || action == ActionHistoryPrevious ||
+		action == ActionHistoryNext || action == ActionBackspace
 }
 
 // Key is one immutable UI-neutral key event.

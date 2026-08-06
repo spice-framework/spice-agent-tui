@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestEditorUsesRuneBoundariesAndImmutableUpdates(t *testing.T) {
+func TestEditorUsesGraphemeBoundariesAndImmutableUpdates(t *testing.T) {
 	t.Parallel()
 	editor, err := NewEditor("a界")
 	if err != nil || editor.Cursor() != 2 {
@@ -25,6 +25,37 @@ func TestEditorUsesRuneBoundariesAndImmutableUpdates(t *testing.T) {
 	}
 	if deleted.Move(42) != deleted || (EditorState{}).Backspace() != (EditorState{}) || deleted.Clear() != (EditorState{}) {
 		t.Fatal("editor boundary operations are not stable")
+	}
+	if deleted.Move(MoveStart).Cursor() != 0 || deleted.Move(MoveStart).Move(MoveEnd).Cursor() != 2 {
+		t.Fatal("editor start/end movement is not stable")
+	}
+}
+
+func TestEditorNeverSplitsUnicodeGraphemeClusters(t *testing.T) {
+	t.Parallel()
+	editor, err := NewEditor("e\u0301👩‍💻界")
+	if err != nil || editor.Cursor() != 6 {
+		t.Fatalf("NewEditor() = %#v, %v", editor, err)
+	}
+	editor = editor.Move(MoveLeft)
+	if editor.Cursor() != 5 {
+		t.Fatalf("cursor before wide rune = %d, want 5", editor.Cursor())
+	}
+	editor = editor.Move(MoveLeft)
+	if editor.Cursor() != 2 {
+		t.Fatalf("cursor before ZWJ emoji = %d, want 2", editor.Cursor())
+	}
+	editor = editor.Move(MoveLeft)
+	if editor.Cursor() != 0 {
+		t.Fatalf("cursor before combining cluster = %d, want 0", editor.Cursor())
+	}
+	editor = editor.Move(MoveEnd).Backspace()
+	if editor.Value().String() != "e\u0301👩‍💻" || editor.Cursor() != 5 {
+		t.Fatalf("grapheme backspace = %#v", editor)
+	}
+	malformed := EditorState{value: "e\u0301", cursor: 1}
+	if malformed.Validate() == nil {
+		t.Fatal("cursor inside combining cluster was accepted")
 	}
 }
 

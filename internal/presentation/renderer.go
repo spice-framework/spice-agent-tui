@@ -28,6 +28,9 @@ func (FixedRenderer) Render(data agenttui.ViewData, size agenttui.Size, theme ag
 	}
 	lines := make([]string, size.Height())
 	palette := theme.Palette()
+	promptX := 0
+	promptY := 0
+	promptVisible := false
 	if size.Height() > 0 {
 		lines[0] = styled(palette.Accent(), true, data.Workspace().Title().String())
 	}
@@ -38,7 +41,9 @@ func (FixedRenderer) Render(data agenttui.ViewData, size agenttui.Size, theme ag
 	}
 	if size.Height() >= 3 {
 		bodyEnd--
-		lines[bodyEnd] = renderPrompt(data.Prompt(), palette)
+		lines[bodyEnd], promptX = renderPrompt(data.Prompt(), palette, size.Width())
+		promptY = bodyEnd
+		promptVisible = true
 	}
 	body := semanticBody(data, palette)
 	for index := 1; index < bodyEnd && index-1 < len(body); index++ {
@@ -47,7 +52,11 @@ func (FixedRenderer) Render(data agenttui.ViewData, size agenttui.Size, theme ag
 	for index := range lines {
 		lines[index] = fitLine(lines[index], size.Width())
 	}
-	return agenttui.NewFrame(strings.Join(lines, "\n"), size)
+	frame, err := agenttui.NewFrame(strings.Join(lines, "\n"), size)
+	if err != nil || !promptVisible {
+		return frame, err
+	}
+	return frame.WithCursor(promptX, promptY)
 }
 
 func semanticBody(data agenttui.ViewData, palette agenttui.Palette) []string {
@@ -79,27 +88,39 @@ func splitSemanticLines(value string) []string {
 	return strings.Split(value, "\n")
 }
 
-func renderPrompt(editor agenttui.EditorState, palette agenttui.Palette) string {
+func renderPrompt(editor agenttui.EditorState, palette agenttui.Palette, width int) (string, int) {
+	const label = "> "
 	value := []rune(editor.Value().String())
 	cursor := editor.Cursor()
-	withCursor := make([]rune, 0, len(value)+1)
-	withCursor = append(withCursor, value[:cursor]...)
-	withCursor = append(withCursor, '│')
-	withCursor = append(withCursor, value[cursor:]...)
-	return styled(palette.Accent(), true, "> ") + styled(palette.Foreground(), false, string(withCursor))
+	prefix := string(value[:cursor])
+	suffix := string(value[cursor:])
+	labelWidth := ansi.StringWidth(label)
+	available := max(width-labelWidth, 0)
+	if available == 0 {
+		return styled(palette.Accent(), true, label), max(width-1, 0)
+	}
+	prefixWidth := ansi.StringWidth(prefix)
+	visiblePrefix := prefix
+	if prefixWidth >= available {
+		keep := max(available-1, 0)
+		visiblePrefix = ansi.TruncateLeft(prefix, prefixWidth-keep, "")
+	}
+	content := ansi.Truncate(visiblePrefix+suffix, available, "")
+	cursorX := min(labelWidth+ansi.StringWidth(visiblePrefix), width-1)
+	return styled(palette.Accent(), true, label) + styled(palette.Foreground(), false, content), cursorX
 }
 
 func renderStatus(status agenttui.StatusState, palette agenttui.Palette) string {
 	color := palette.Muted()
 	switch status.Level() {
-	case agenttui.StatusBusy:
+	case agenttui.StatusBusy, agenttui.StatusReconnecting:
 		color = palette.Accent()
-	case agenttui.StatusWarning:
+	case agenttui.StatusDisconnected, agenttui.StatusWarning:
 		color = palette.Warning()
 	case agenttui.StatusError:
 		color = palette.Failure()
 	}
-	result := styled(color, true, strings.ToUpper(string(status.Level()))+" "+status.Message().String())
+	result := styled(color, true, "["+strings.ToUpper(string(status.Level()))+"] "+status.Message().String())
 	if hints := status.Hints(); len(hints) > 0 {
 		values := make([]string, len(hints))
 		for index, hint := range hints {

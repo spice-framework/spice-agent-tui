@@ -51,3 +51,20 @@ func TestShellHonorsCancellationDuringRun(t *testing.T) {
 		t.Fatal("Run() did not honor cancellation")
 	}
 }
+
+func TestShellQuitsCleanlyFromCtrlCInput(t *testing.T) {
+	model := fixtureModel(t, FixedRenderer{})
+	var output bytes.Buffer
+	shell, err := NewShell(model, bytes.NewBufferString("\x03"), &output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	defer cancel()
+	if err := shell.Run(ctx); err != nil {
+		t.Fatalf("Run(ctrl+c) error = %v", err)
+	}
+	if output.Len() == 0 {
+		t.Fatal("Run(ctrl+c) produced no terminal lifecycle output")
+	}
+}

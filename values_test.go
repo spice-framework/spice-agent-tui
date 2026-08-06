@@ -40,11 +40,23 @@ func TestSizeAndFrameBounds(t *testing.T) {
 	if err != nil || frame.Content() != "frame" || frame.Size() != valid {
 		t.Fatalf("NewFrame() = %#v, %v", frame, err)
 	}
-	if _, err := NewFrame(strings.Repeat("x", MaximumFrameBytes+1), valid); err == nil {
+	if _, frameErr := NewFrame(strings.Repeat("x", MaximumFrameBytes+1), valid); frameErr == nil {
 		t.Fatal("NewFrame(oversize) error = nil")
 	}
-	if _, err := NewFrame("frame", Size{}); err == nil {
+	if _, frameErr := NewFrame("frame", Size{}); frameErr == nil {
 		t.Fatal("NewFrame(zero size) error = nil")
+	}
+	styled, err := NewFrame("\x1b[31merror\x1b[0m", valid)
+	if err != nil || styled.PlainContent() != "error" {
+		t.Fatalf("Frame.PlainContent() = %q, %v", styled.PlainContent(), err)
+	}
+	withCursor, err := styled.WithCursor(79, 23)
+	x, y, visible := withCursor.Cursor()
+	if err != nil || x != 79 || y != 23 || !visible {
+		t.Fatalf("Frame.Cursor() = %d,%d,%t, %v", x, y, visible, err)
+	}
+	if _, cursorErr := styled.WithCursor(80, 23); cursorErr == nil {
+		t.Fatal("Frame.WithCursor(outside) error = nil")
 	}
 }
 
@@ -101,6 +113,11 @@ func TestWorkspaceAndStatusAreImmutable(t *testing.T) {
 	}
 	if err := (StatusState{level: StatusReady, hints: []Text{{value: "\x1b"}}}).Validate(); err == nil {
 		t.Fatal("StatusState.Validate(unsafe hint) error = nil")
+	}
+	for _, level := range []StatusLevel{StatusDisconnected, StatusReconnecting, StatusError} {
+		if _, err := NewStatus(level, mustText(t, string(level)), nil); err != nil {
+			t.Fatalf("NewStatus(%q) error = %v", level, err)
+		}
 	}
 }
 

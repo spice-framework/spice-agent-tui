@@ -60,11 +60,20 @@ ANSI-aware truncation operations, which are required for correct Unicode cell
 widths without splitting style sequences. It performs no I/O, logging,
 telemetry, persistence, or network access.
 
+### Rivo uniseg v0.4.7
+
+`github.com/rivo/uniseg` is pinned directly at v0.4.7 and is MIT licensed. The
+immutable prompt editor uses its Unicode grapheme segmentation so navigation,
+deletion, and insertion never leave a cursor inside combining text, emoji ZWJ
+sequences, regional indicators, or variation-selector clusters. Work remains
+bounded by the 4 KiB prompt limit. The package performs no I/O, persistence,
+telemetry, network access, or background work.
+
 ### Transitive terminal dependencies
 
 Bubble Tea's selected graph includes terminal capability, input cancellation,
-Unicode segmentation/display width, color, synchronization, and OS syscall
-packages. Their exact versions are recorded by `go.mod`, `go.sum`, and
+display width, color, synchronization, and OS syscall packages. Their exact
+versions are recorded by `go.mod`, `go.sum`, and
 `vendor/modules.txt`. Product code does not import these transitive packages.
 Their platform files are exercised by Windows tests and Linux compile/test
 coverage in the release workflow. Any change to the graph requires a fresh
