@@ -109,9 +109,21 @@ func checkIdentity(root string) error {
 	if err != nil {
 		return fmt.Errorf("read go.mod: %w", err)
 	}
-	want := "module " + modulePath + "\n\ngo 1.26.0\n\ntoolchain go1.26.5\n"
-	if strings.ReplaceAll(string(content), "\r\n", "\n") != want {
-		return errors.New("go.mod must contain only the canonical module, Go 1.26.0 language version, and Go 1.26.5 toolchain in the repository foundation")
+	normalized := strings.ReplaceAll(string(content), "\r\n", "\n")
+	for _, required := range []string{
+		"module " + modulePath + "\n",
+		"\ngo 1.26.0\n",
+		"\ntoolchain go1.26.5\n",
+		"charm.land/bubbletea/v2 v2.0.8",
+		"github.com/charmbracelet/x/ansi v0.11.7",
+	} {
+		if strings.Count(normalized, required) != 1 {
+			return fmt.Errorf("go.mod must contain exactly one %q", strings.TrimSpace(required))
+		}
+	}
+	if strings.Contains(normalized, "github.com/charmbracelet/bubbletea/v2") ||
+		strings.Contains(normalized, "\nreplace ") || strings.Contains(normalized, "\nreplace (") {
+		return errors.New("go.mod must use canonical, unreplaced charm.land/bubbletea/v2 v2.0.8")
 	}
 	compatibilityContent, err := os.ReadFile(filepath.Join(root, "compatibility.json")) // #nosec G304 -- fixed file under repository root.
 	if err != nil {
@@ -144,9 +156,9 @@ func validateCompatibility(content []byte) error {
 		return errors.New("compatibility metadata has trailing JSON values")
 	}
 	if value.Schema != 1 || value.Go != "1.26.5" || value.SpiceAgentClient != nil ||
-		value.SpiceAgentUIValues != nil ||
+		value.SpiceAgentUIValues == nil || *value.SpiceAgentUIValues != "v0.1.0-dev" ||
 		value.SpiceCore != nil || value.SpiceToolchain != nil {
-		return errors.New("compatibility metadata must record Go 1.26.5 and explicit null repository-foundation contracts")
+		return errors.New("compatibility metadata must record Go 1.26.5, local UI values v0.1.0-dev, and explicit null external contracts")
 	}
 	return nil
 }

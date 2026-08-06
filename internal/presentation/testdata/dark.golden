@@ -1,0 +1,10 @@
+<ESC>[38;2;56;189;248m<ESC>[1mPetClinic<ESC>[0m
+<ESC>[38;2;226;232;240m<ESC>[1mSummary: <ESC>[0m<ESC>[38;2;226;232;240m2 owners<ESC>[0m
+<ESC>[38;2;226;232;240m  1 pet<ESC>[0m
+<ESC>[38;2;226;232;240m<ESC>[1mNotes: <ESC>[0m<ESC>[38;2;226;232;240mNo alerts<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1mActivity<ESC>[0m
+<ESC>[38;2;226;232;240m• visit scheduled<ESC>[0m
+<ESC>[38;2;226;232;240m• email queued<ESC>[0m
+
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240mowner│<ESC>[0m
+<ESC>[38;2;250;204;21m<ESC>[1mWARNING disconnected<ESC>[0m<ESC>[38;2;148;163;184m  ctrl+c quit · r retry<ESC>[0m

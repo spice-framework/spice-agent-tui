@@ -4,12 +4,20 @@ Report vulnerabilities privately through GitHub Security Advisories for this
 repository. Do not open a public issue containing exploit details, credentials,
 prompts, transcripts, or user data.
 
-The terminal client will treat daemon and model output as untrusted text. It
-must not execute rendered content, interpolate it into a shell, or persist it
-without an explicit user-owned destination. Authentication material must be
-instance-owned, redacted, and excluded from logs and crash reports.
+The terminal client treats all semantic, daemon, and model output as untrusted
+text. Public `Text` and prompt constructors reject invalid UTF-8 and terminal
+control characters, including escape sequences. View, activity, prompt, terminal
+size, and rendered-frame limits bound memory and rendering work. Rendered content
+must never be executed, interpolated into a shell, or persisted without an
+explicit user-owned destination. Authentication material must be instance-owned,
+redacted, and excluded from logs and crash reports.
 
-The repository foundation has no runtime or third-party product dependencies.
-Build tools are pinned in `tools/go.mod`, execute only during local
-verification, and receive the same vulnerability and checksum review as product
-dependencies.
+The shell accepts its context, input, output, model, renderer, and theme from its
+caller. It performs no network access, module download, daemon discovery, process
+launch, filesystem persistence, or global registration. Cancellation terminates
+the Bubble Tea program and is returned to the caller.
+
+Product dependencies are pinned and vendored; their review is recorded in
+`docs/dependency-review.md`. Build tools are independently pinned in
+`tools/go.mod`, execute only during local verification, and receive the same
+vulnerability and checksum review as product dependencies.

@@ -1,6 +1,9 @@
-// Package agenttui will contain the standalone terminal client for Spice Agent.
+// Package agenttui defines bounded, immutable, UI-neutral terminal contracts
+// for the standalone Spice Agent terminal product.
 //
-// The repository foundation intentionally exports no client API. A high-level
-// client/session contract and UI-neutral values must be adopted from their owning
-// repositories before this module can expose behavior.
+// The package owns semantic view data, prompt editing, key bindings, themes,
+// deterministic rendering, and shell lifecycle contracts. It deliberately does
+// not define or discover a daemon, transport, coding-agent client, annotation
+// model, generated application, or executable entrypoint. Those boundaries must
+// be explicitly injected after their owning contracts are adopted.
 package agenttui

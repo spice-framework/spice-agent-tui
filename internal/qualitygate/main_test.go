@@ -14,7 +14,7 @@ import (
 
 func TestValidateCompatibility(t *testing.T) {
 	t.Parallel()
-	valid := `{"schema":1,"go":"1.26.5","spice_agent_client":null,"spice_agent_ui_values":null,"spice_core":null,"spice_toolchain":null}`
+	valid := `{"schema":1,"go":"1.26.5","spice_agent_client":null,"spice_agent_ui_values":"v0.1.0-dev","spice_core":null,"spice_toolchain":null}`
 	tests := []struct {
 		name    string
 		content string
@@ -24,9 +24,9 @@ func TestValidateCompatibility(t *testing.T) {
 		{name: "malformed", content: `{`, wantErr: "decode"},
 		{name: "unknown", content: strings.Replace(valid, `}`, `,"extra":true}`, 1), wantErr: "unknown field"},
 		{name: "trailing", content: valid + `{}`, wantErr: "trailing"},
-		{name: "wrong Go", content: strings.Replace(valid, "1.26.5", "1.26.4", 1), wantErr: "explicit null"},
-		{name: "premature client", content: strings.Replace(valid, `"spice_agent_client":null`, `"spice_agent_client":"v1"`, 1), wantErr: "explicit null"},
-		{name: "premature UI values", content: strings.Replace(valid, `"spice_agent_ui_values":null`, `"spice_agent_ui_values":"v1"`, 1), wantErr: "explicit null"},
+		{name: "wrong Go", content: strings.Replace(valid, "1.26.5", "1.26.4", 1), wantErr: "local UI values"},
+		{name: "premature client", content: strings.Replace(valid, `"spice_agent_client":null`, `"spice_agent_client":"v1"`, 1), wantErr: "external contracts"},
+		{name: "wrong UI values", content: strings.Replace(valid, `"spice_agent_ui_values":"v0.1.0-dev"`, `"spice_agent_ui_values":"v1"`, 1), wantErr: "local UI values"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -45,8 +45,8 @@ func TestValidateCompatibility(t *testing.T) {
 func TestCheckIdentityAndToolPins(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
-	writeFile(t, root, "go.mod", "module "+modulePath+"\n\ngo 1.26.0\n\ntoolchain go1.26.5\n")
-	writeFile(t, root, "compatibility.json", `{"schema":1,"go":"1.26.5","spice_agent_client":null,"spice_agent_ui_values":null,"spice_core":null,"spice_toolchain":null}`)
+	writeFile(t, root, "go.mod", "module "+modulePath+"\n\ngo 1.26.0\n\ntoolchain go1.26.5\n\nrequire (\n\tcharm.land/bubbletea/v2 v2.0.8\n\tgithub.com/charmbracelet/x/ansi v0.11.7\n)\n")
+	writeFile(t, root, "compatibility.json", `{"schema":1,"go":"1.26.5","spice_agent_client":null,"spice_agent_ui_values":"v0.1.0-dev","spice_core":null,"spice_toolchain":null}`)
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
 		"github.com/golangci/golangci-lint/v2 v2.12.2",
 		"github.com/securego/gosec/v2 v2.28.0",
@@ -58,6 +58,15 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	if err := checkIdentity(root); err != nil {
 		t.Fatalf("checkIdentity() error = %v", err)
 	}
+	writeFile(t, root, "go.mod", "module "+modulePath+"\n\ngo 1.26.0\n\ntoolchain go1.26.5\n\nrequire (\n\tgithub.com/charmbracelet/bubbletea/v2 v2.0.8\n\tgithub.com/charmbracelet/x/ansi v0.11.7\n)\n")
+	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "charm.land/bubbletea") {
+		t.Fatalf("checkIdentity(noncanonical Bubble Tea) error = %v", identityErr)
+	}
+	writeFile(t, root, "go.mod", "module "+modulePath+"\n\ngo 1.26.0\n\ntoolchain go1.26.5\n\nrequire (\n\tcharm.land/bubbletea/v2 v2.0.8\n\tgithub.com/charmbracelet/x/ansi v0.11.7\n)\n\nreplace charm.land/bubbletea/v2 => ../local\n")
+	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "unreplaced") {
+		t.Fatalf("checkIdentity(replaced Bubble Tea) error = %v", identityErr)
+	}
+	writeFile(t, root, "go.mod", "module "+modulePath+"\n\ngo 1.26.0\n\ntoolchain go1.26.5\n\nrequire (\n\tcharm.land/bubbletea/v2 v2.0.8\n\tgithub.com/charmbracelet/x/ansi v0.11.7\n)\n")
 	writeFile(t, root, "tools/go.mod", "module missing")
 	if err := checkIdentity(root); err == nil || !strings.Contains(err.Error(), "missing exact pin") {
 		t.Fatalf("checkIdentity() error = %v, want pin diagnostic", err)

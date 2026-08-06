@@ -10,7 +10,7 @@ protocol, daemon, and distribution contracts.
 
 - [x] Establish Apache-2.0 licensing and governance.
 - [x] Enforce Go 1.26.5 with cross-platform fast/check/verify gates.
-- [x] Reserve package ownership without publishing speculative APIs.
+- [x] Publish the bounded UI-neutral values needed by real presentation code.
 - [x] Record explicit unselected compatibility boundaries.
 - [ ] With the first real generated TUI slice, pin exact compatible Spice core
       and toolchain versions, publish the TUI starter manifest, and register its
@@ -23,7 +23,7 @@ manifest, and catalog work above can be proved by executable product code.
 ## Adopted dependencies
 
 - [ ] Adopt the separately reviewed high-level Spice Agent client/session API.
-- [ ] Adopt UI-neutral interaction and semantic-view values.
+- [x] Define UI-neutral interaction and semantic-view values locally.
 - [ ] Define cancellation, reconnect, backpressure, and transcript-redaction behavior.
 - [ ] Add a deterministic fake client/session and lifecycle tests.
 - [ ] Keep the kernel, generated gRPC, daemon supervision, and OS IPC outside
@@ -31,7 +31,9 @@ manifest, and catalog work above can be proved by executable product code.
 
 ## Terminal product
 
-- [ ] Review and pin Bubble Tea v2 with the first production shell code.
-- [ ] Implement the shell, renderers, editor, commands, and keybindings.
+- [x] Review and pin Bubble Tea v2.0.8 with the first production shell code.
+- [x] Implement the deterministic shell/model skeleton, renderer, editor, and
+      keybindings without faking application integration.
+- [ ] Adopt application commands only after the client/session contract exists.
 - [ ] Implement accessible keyboard navigation, resizing, streaming, and errors.
 - [ ] Verify packaged Windows and Linux executables against a real daemon.
