@@ -16,12 +16,12 @@ import (
 // The required name and optional aliases, qualifiers, primary/fallback choice,
 // and order are explicit static bean metadata. This annotation does not create
 // a default shell, discover a daemon, infer terminal ownership, or register a
-// runtime container. The trusted tool handler never guesses interface identity
-// from strings. Exact descriptor-result enforcement is reserved for the shared
-// compiler's upcoming generic Invocation.Facts type-domain support; this handler
-// deliberately does not parse TypeID or add TUI-specific compiler behavior.
-// Until that support lands, callers must return the documented exact interface
-// and ordinary typed injection still fails closed when no Shell candidate exists.
+// runtime container. The trusted tool handler decodes the compiler's generic
+// function-result facts and requires exact canonical Shell identity and named
+// origin with interface kind. A real Go alias is accepted because its canonical
+// identity is Shell; a defined wrapper, anonymous interface, or concrete result
+// is rejected. Declaration.TypeID remains opaque and is never parsed. Optional
+// cleanup and error results must use an ordinary supported provider shape.
 //
 //	// @import { UIShell } from "github.com/spice-framework/spice-agent-tui/annotation/ui"
 //	// @UIShell(name="terminal", aliases=["interactive"], qualifiers=["primary-ui"], primary=true)
@@ -52,8 +52,15 @@ func UIShell() sdk.Definition {
 	}
 }
 
-// UIShellHandler validates invocation and bean metadata and contributes only
-// generic provider records. The compiler validates provider shape.
+// UIShellHandler fails closed on missing or malformed compiler result facts,
+// validates the exact public Shell contract, and contributes generic provider
+// records without executing or parsing the annotated factory.
 func UIShellHandler(ctx context.Context, invocation sdk.Invocation) (sdk.Result, error) {
-	return providerMetadata(ctx, invocation, "UIShell")
+	return providerMetadata(
+		ctx,
+		invocation,
+		"UIShell",
+		shellTypeID,
+		shellOriginName,
+	)
 }

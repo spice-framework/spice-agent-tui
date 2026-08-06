@@ -2,23 +2,36 @@
 
 ## Product graph
 
-### Spice core v0.1.0-preview.1
+### Spice core v0.1.0-preview.1.0.20260806200749-524424a04df0
 
-`github.com/spice-framework/spice` is pinned exactly at v0.1.0-preview.1 and is
+`github.com/spice-framework/spice` is pinned exactly at
+v0.1.0-preview.1.0.20260806200749-524424a04df0 and is
 Apache-2.0 licensed. This module uses its public annotation SDK v1alpha2,
 framed protocol server, starter manifest, lifecycle provider contract metadata,
 and Modulith declaration annotations. It does not import Spice compiler,
 toolchain, CLI, generated transport, or internal packages.
 
-The annotation SDK carries immutable typed contributions. TUI handlers emit only
-provider and bean-selection metadata; exact Go interface and alias resolution is
-performed later by the consuming toolchain's generic typed compiler. The stdio
+The annotation SDK carries immutable typed contributions and bounded generic
+function-result facts. TUI handlers use canonical identity, effective kind, and
+named origin to validate exact interfaces while retaining alias support. The stdio
 server receives caller-owned streams and cancellation and performs no network,
 filesystem, logging, telemetry, discovery, or background update work.
 
 The dependency is pre-1.0 and therefore intentionally exact. Upgrading requires
 descriptor decode, protocol framing, starter compatibility, contribution wire,
 vendor-offline, and full generated-compiler compatibility review.
+
+### Spice toolchain v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6
+
+`github.com/spice-framework/toolchain` is selected through standard Go `tool`
+directives for the Spice CLI and official core annotation tool. It supplies the
+single `go/types` result-fact producer and real offline acceptance compiler. It
+is a development/tool dependency only: public TUI packages and runtime code do
+not import compiler, CLI, or internal toolchain packages.
+
+The exact pin is intentionally coupled to the core result-facts revision.
+`go.sum` and committed vendor contents provide integrity and offline operation;
+ordinary verification never downloads or updates either module.
 
 ### Bubble Tea v2.0.8
 

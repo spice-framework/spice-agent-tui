@@ -35,12 +35,19 @@ func NewTerminalShell(model Model, streams Streams) agenttui.Shell
 func NewFixedRenderer(config RenderConfig) agenttui.Renderer
 ```
 
-The handlers contribute only generic Spice provider and bean metadata.
-Constructor parameters, cleanup, error forms, and all interface identity logic
-remain owned by the shared typed compiler. Descriptor-specific enforcement that
-an annotated result is exactly `Shell` or `Renderer` awaits the compiler's
-generic `Invocation.Facts` type-domain support; no string parser or TUI-specific
-compiler switch substitutes for it. See `docs/annotations.md`.
+The handlers contribute only generic Spice provider and bean metadata. They
+decode the shared compiler's generic result facts and require exact canonical
+`Shell` or `Renderer` identity with interface kind and public named origin.
+Real Go aliases work; defined wrappers, anonymous interfaces, concrete results,
+missing facts, and malformed facts fail closed. The handlers never parse
+`Declaration.TypeID`. Constructor parameters and generated calls remain owned
+by the shared typed compiler. See `docs/annotations.md`.
+
+The module pins the exact Spice core and toolchain revisions that define and
+produce these facts. Repository acceptance runs the real pinned `spice verify`
+tool against alias-positive and source-positioned negative fixtures. This is a
+compiler-development dependency only; no client, daemon, or transport wiring
+has been added.
 
 Go 1.26.5 is exact. On a fresh clone, run `make tools-bootstrap` once to
 populate the exact product and tools module graphs without changing tracked

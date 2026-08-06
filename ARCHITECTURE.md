@@ -34,14 +34,16 @@ module's named `annotations` interface. Each annotation has one canonical file
 containing rich GoDoc, its statically decoded descriptor, and its typed handler.
 `internal/annotationtool` owns isolated sorted protocol dispatch, and
 `cmd/spice-agent-tui-annotations` is only its `go tool` stdio boundary. The tool
-returns generic `ProviderContribution` and `BeanMetadataContribution` records;
-it never decides whether a result type implements `Shell` or `Renderer`.
-Interface and alias identity, dependency inputs, cleanup, and error forms stay
-in the shared Spice `go/types` pipeline. The SDK does not yet expose the generic
-`Invocation.Facts` type-domain contract needed to assert that these two
-descriptor results are exactly the documented interfaces. That follow-up belongs
-to Spice/toolchain; this module does not parse `TypeID` or add name-based
-compiler logic as a workaround.
+returns generic `ProviderContribution` and `BeanMetadataContribution` records.
+
+The shared Spice `go/types` pipeline produces bounded v1alpha2 function-result
+facts. TUI handlers decode those facts and require the first provider result to
+have interface kind, exact canonical public `Shell` or `Renderer` identity, and
+the matching named origin. Aliases preserve a readable source identity while
+canonicalizing to the public contract. Defined wrappers, anonymous interfaces,
+concrete results, malformed metadata, and unsupported cleanup/error layouts are
+rejected. The handler never parses `Declaration.TypeID`, performs assignability,
+or adds TUI-specific behavior to the compiler.
 
 `internal/application` owns terminal-product composition and the lifecycle of
 the injected client session. Neither package may import the agent kernel,
@@ -58,7 +60,8 @@ responsibility.
 ## Compatibility
 
 `compatibility.json` records Go 1.26.5, the local `v0.1.0-dev` UI-value contract,
-and exact Spice core `v0.1.0-preview.1`. The high-level client/session and
-toolchain remain explicit null contracts. Replacing a null requires an
+and exact result-facts Spice core and toolchain pseudo-versions. The toolchain is
+a compiler/development tool, not a runtime dependency. The high-level
+client/session remains an explicit null contract; replacing it requires an
 adopted contract, immutable version selection, and executable compatibility
 tests.

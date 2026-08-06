@@ -12,12 +12,31 @@ import (
 )
 
 const (
-	descriptorPackage = "github.com/spice-framework/spice-agent-tui/annotation/ui"
-	maximumOrder      = int64(1_000_000)
+	descriptorPackage  = "github.com/spice-framework/spice-agent-tui/annotation/ui"
+	publicPackage      = "github.com/spice-framework/spice-agent-tui"
+	shellTypeID        = publicPackage + ".Shell"
+	shellOriginName    = "Shell"
+	rendererTypeID     = publicPackage + ".Renderer"
+	rendererOriginName = "Renderer"
+	cleanupTypeID      = "github.com/spice-framework/spice/lifecycle.Cleanup"
+	cleanupPackage     = "github.com/spice-framework/spice/lifecycle"
+	maximumOrder       = int64(1_000_000)
 )
 
-func providerMetadata(ctx context.Context, invocation sdk.Invocation, symbol string) (sdk.Result, error) {
-	if err := validateInvocation(ctx, invocation, symbol); err != nil {
+func providerMetadata(
+	ctx context.Context,
+	invocation sdk.Invocation,
+	symbol string,
+	resultTypeID string,
+	resultOriginName string,
+) (sdk.Result, error) {
+	if err := validateInvocation(
+		ctx,
+		invocation,
+		symbol,
+		resultTypeID,
+		resultOriginName,
+	); err != nil {
 		return sdk.Result{}, err
 	}
 	arguments, err := sdk.BindArguments(invocation, "", "name", "aliases", "qualifiers", "primary", "fallback", "order")
@@ -45,7 +64,13 @@ func providerMetadata(ctx context.Context, invocation sdk.Invocation, symbol str
 	)
 }
 
-func validateInvocation(ctx context.Context, invocation sdk.Invocation, symbol string) error {
+func validateInvocation(
+	ctx context.Context,
+	invocation sdk.Invocation,
+	symbol string,
+	resultTypeID string,
+	resultOriginName string,
+) error {
 	if ctx == nil {
 		return errors.New("TUI annotation handler context must not be nil")
 	}
@@ -55,7 +80,91 @@ func validateInvocation(ctx context.Context, invocation sdk.Invocation, symbol s
 	if err := invocation.RequireDescriptor(descriptorPackage, symbol); err != nil {
 		return err
 	}
-	return validateFactory(invocation)
+	if err := validateFactory(invocation); err != nil {
+		return err
+	}
+	return validateProviderResult(invocation, resultTypeID, resultOriginName)
+}
+
+func validateProviderResult(
+	invocation sdk.Invocation,
+	expectedTypeID string,
+	expectedOriginName string,
+) error {
+	results, present, err := invocation.FunctionResultFacts()
+	if err != nil {
+		return fmt.Errorf("decode TUI factory result facts: %w", err)
+	}
+	if !present {
+		return errors.New("TUI factory requires generic function result facts from the Spice toolchain")
+	}
+	providerResult, err := primaryFunctionResult(results)
+	if err != nil {
+		return err
+	}
+	if providerResult.Kind != sdk.GoTypeInterface {
+		return fmt.Errorf(
+			"TUI factory result zero must have effective Go kind interface, got %s",
+			providerResult.Kind,
+		)
+	}
+	if providerResult.CanonicalTypeID != expectedTypeID {
+		return fmt.Errorf(
+			"TUI factory result zero must have exact canonical type %s, got %s",
+			expectedTypeID,
+			providerResult.CanonicalTypeID,
+		)
+	}
+	if providerResult.NamedOriginPackage != publicPackage ||
+		providerResult.NamedOriginName != expectedOriginName {
+		return fmt.Errorf(
+			"TUI factory result zero must originate from %s.%s, got %s.%s",
+			publicPackage,
+			expectedOriginName,
+			providerResult.NamedOriginPackage,
+			providerResult.NamedOriginName,
+		)
+	}
+	return nil
+}
+
+func primaryFunctionResult(
+	results []sdk.FunctionResultFact,
+) (sdk.FunctionResultFact, error) {
+	if len(results) == 0 || len(results) > 3 {
+		return sdk.FunctionResultFact{}, errors.New(
+			"TUI factory must return one provider value with optional lifecycle.Cleanup and error",
+		)
+	}
+	switch len(results) {
+	case 1:
+		return results[0], nil
+	case 2:
+		if isCleanupResult(results[1]) || isErrorResult(results[1]) {
+			return results[0], nil
+		}
+	case 3:
+		if isCleanupResult(results[1]) && isErrorResult(results[2]) {
+			return results[0], nil
+		}
+	}
+	return sdk.FunctionResultFact{}, errors.New(
+		"TUI factory results must be T, (T, error), (T, lifecycle.Cleanup), or (T, lifecycle.Cleanup, error)",
+	)
+}
+
+func isCleanupResult(result sdk.FunctionResultFact) bool {
+	return result.CanonicalTypeID == cleanupTypeID &&
+		result.Kind == sdk.GoTypeSignature &&
+		result.NamedOriginPackage == cleanupPackage &&
+		result.NamedOriginName == "Cleanup"
+}
+
+func isErrorResult(result sdk.FunctionResultFact) bool {
+	return result.CanonicalTypeID == "error" &&
+		result.Kind == sdk.GoTypeInterface &&
+		result.NamedOriginPackage == "" &&
+		result.NamedOriginName == "error"
 }
 
 type beanSelection struct {

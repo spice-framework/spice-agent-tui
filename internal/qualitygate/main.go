@@ -23,10 +23,16 @@ import (
 )
 
 const (
-	requiredGoVersion = "go1.26.5"
-	modulePath        = "github.com/spice-framework/spice-agent-tui"
-	annotationTool    = modulePath + "/cmd/spice-agent-tui-annotations"
-	minimumCoverage   = 85.0
+	requiredGoVersion  = "go1.26.5"
+	modulePath         = "github.com/spice-framework/spice-agent-tui"
+	annotationTool     = modulePath + "/cmd/spice-agent-tui-annotations"
+	coreModule         = "github.com/spice-framework/spice"
+	coreVersion        = "v0.1.0-preview.1.0.20260806200749-524424a04df0"
+	toolchainModule    = "github.com/spice-framework/toolchain"
+	toolchainVersion   = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
+	spiceTool          = toolchainModule + "/cmd/spice"
+	coreAnnotationTool = toolchainModule + "/cmd/spice-annotation-core"
+	minimumCoverage    = 85.0
 )
 
 var output io.Writer = os.Stdout
@@ -123,8 +129,11 @@ func checkIdentity(root string) error {
 		"\ntoolchain go1.26.5\n",
 		"charm.land/bubbletea/v2 v2.0.8",
 		"github.com/charmbracelet/x/ansi v0.11.7",
-		"github.com/spice-framework/spice v0.1.0-preview.1",
-		"tool " + annotationTool,
+		coreModule + " " + coreVersion,
+		toolchainModule + " " + toolchainVersion,
+		"\t" + annotationTool + "\n",
+		"\t" + spiceTool + "\n",
+		"\t" + coreAnnotationTool + "\n",
 	} {
 		if strings.Count(normalized, required) != 1 {
 			return fmt.Errorf("go.mod must contain exactly one %q", strings.TrimSpace(required))
@@ -166,8 +175,11 @@ func validateCompatibility(content []byte) error {
 	}
 	if value.Schema != 1 || value.Go != "1.26.5" || value.SpiceAgentClient != nil ||
 		value.SpiceAgentUIValues == nil || *value.SpiceAgentUIValues != "v0.1.0-dev" ||
-		value.SpiceCore == nil || *value.SpiceCore != "v0.1.0-preview.1" || value.SpiceToolchain != nil {
-		return errors.New("compatibility metadata must record Go 1.26.5, local UI values v0.1.0-dev, Spice core v0.1.0-preview.1, and explicit null client/toolchain contracts")
+		value.SpiceCore == nil || *value.SpiceCore != coreVersion ||
+		value.SpiceToolchain == nil || *value.SpiceToolchain != toolchainVersion {
+		return errors.New(
+			"compatibility metadata must record Go 1.26.5, local UI values v0.1.0-dev, exact result-facts core/toolchain revisions, and an explicit null client contract",
+		)
 	}
 	return nil
 }

@@ -12,10 +12,12 @@ protocol, daemon, and distribution contracts.
 - [x] Enforce Go 1.26.5 with cross-platform fast/check/verify gates.
 - [x] Publish the bounded UI-neutral values needed by real presentation code.
 - [x] Record explicit selected and unselected compatibility boundaries.
-- [x] Pin Spice core v0.1.0-preview.1 and publish the explicit-constructor TUI
+- [x] Pin the exact result-facts Spice core and toolchain revisions and publish the explicit-constructor TUI
       starter manifest without claiming shell auto-configuration.
-- [ ] With the first real generated TUI slice, pin the exact compatible
-      toolchain version and register compatibility gates in the development catalog.
+- [x] Prove generic result facts through the real tool protocol with alias-positive
+      and source-positioned negative compiler fixtures.
+- [ ] Register the compatible revisions in the development catalog with the
+      first generated application slice.
 
 The checked items describe this repository's scaffold only. Its portion of the
 canonical multi-repository foundation is not complete until the pending pin,
@@ -37,7 +39,7 @@ manifest, and catalog work above can be proved by executable product code.
       keybindings without faking application integration.
 - [x] Publish `@UIShell` and `@UIRenderer` through a typed v1alpha2 Go tool;
       preserve generic compiler ownership of exact interface identity.
-- [ ] Adopt generic `Invocation.Facts` type-domain support from Spice/toolchain
+- [x] Adopt generic `Invocation.Facts` type-domain support from Spice/toolchain
       to enforce exact `Shell` and `Renderer` annotation results, including aliases.
 - [ ] Add shell auto-configuration only after model, client, input, and output
       ownership contracts are stable.

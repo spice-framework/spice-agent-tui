@@ -50,9 +50,19 @@ func TestDescriptorsAndHandlersStayCanonicalAndGeneric(t *testing.T) {
 	for _, forbidden := range [][]byte{
 		[]byte("ContributionInterface"), []byte("RuntimeGraph"), []byte("reflect."),
 		[]byte("agenttui.Shell"), []byte("agenttui.Renderer"),
+		[]byte("invocation.Declaration.TypeID"),
 	} {
 		if bytes.Contains(metadata, forbidden) {
 			t.Fatalf("generic metadata handler contains forbidden type logic %q", forbidden)
+		}
+	}
+	for _, required := range [][]byte{
+		[]byte("invocation.FunctionResultFacts()"),
+		[]byte("providerResult.CanonicalTypeID"),
+		[]byte("sdk.GoTypeInterface"),
+	} {
+		if !bytes.Contains(metadata, required) {
+			t.Fatalf("generic metadata handler lacks result-fact contract %q", required)
 		}
 	}
 }

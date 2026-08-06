@@ -38,20 +38,20 @@ It runs only as `go tool <path> --spice-stdio` and implements the public Spice
 v1alpha2 framed protocol. Normal analysis uses the already selected module graph
 and must not download or install anything in the background.
 
-There is no type-name shortcut in either handler. A handler confirms only that
-the declaration is an exported package-level factory and validates its explicit
-selection metadata, then returns generic provider and bean metadata. The shared typed compiler validates
-ordinary provider signatures such as `(T, error)`, `(T, lifecycle.Cleanup)`, and
-`(T, lifecycle.Cleanup, error)`, and generated code calls factories directly.
+There is no type-name shortcut in either handler. The shared typed compiler
+publishes bounded facts for every function result: readable identity, canonical
+identity after alias removal, effective Go kind, and named origin. The handler
+requires result zero to be the exact public `agenttui.Shell` or
+`agenttui.Renderer` interface and accepts aliases through canonical identity.
+Defined wrapper interfaces, anonymous interfaces, concrete results, missing or
+malformed facts, and forged origins are rejected at the annotation position.
 
-One contract is deliberately pending: Spice's public SDK does not yet expose the
-generic `Invocation.Facts` type-domain information needed for a descriptor to
-require that its first result is exactly `Shell` or `Renderer` while preserving
-Go alias identity. Factories must currently follow the documented result type;
-ordinary typed injection still fails closed when no matching interface bean
-exists, but the descriptor-specific source diagnostic will arrive with that
-shared SDK/toolchain feature. The TUI tool will not parse `Declaration.TypeID`,
-guess assignability from a string, or introduce annotation-name switches.
+Supported output layouts are `T`, `(T, error)`, `(T, lifecycle.Cleanup)`, and
+`(T, lifecycle.Cleanup, error)`. The handler validates the auxiliary identities
+but never executes the function or parses `Declaration.TypeID`. Constructor
+parameters and direct generated calls remain generic compiler responsibilities.
+Real-tool acceptance executes the pinned Spice CLI against alias-positive and
+wrapper/anonymous/concrete negative fixtures.
 
 These annotations deliberately do not create a model, client session, input,
 output, shell, or renderer. They do not expose the internal presentation

@@ -151,6 +151,25 @@ func shellInvocation(t *testing.T) sdk.Invocation {
 	if err != nil {
 		t.Fatal(err)
 	}
+	facts, err := sdk.EncodeFunctionResultFacts([]sdk.FunctionResultFact{
+		{
+			TypeID:             "example.com/application.ShellAlias",
+			CanonicalTypeID:    "github.com/spice-framework/spice-agent-tui.Shell",
+			Kind:               sdk.GoTypeInterface,
+			NamedOriginPackage: "github.com/spice-framework/spice-agent-tui",
+			NamedOriginName:    "Shell",
+		},
+		{
+			TypeID:          "error",
+			CanonicalTypeID: "error",
+			Kind:            sdk.GoTypeInterface,
+			NamedOriginName: "error",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	facts["symbol_kind"] = "function"
 	return sdk.Invocation{
 		DescriptorPackage: descriptorPackage, DescriptorSymbol: "UIShell", CanonicalName: "ui.UIShell",
 		Arguments: []sdk.InvocationArgument{{Name: "name", Kind: sdk.KindString, Value: name}},
@@ -158,6 +177,6 @@ func shellInvocation(t *testing.T) sdk.Invocation {
 			Target: sdk.TargetFunction, SymbolID: "example.com/application.NewTerminal", Name: "NewTerminal",
 			PackagePath: "example.com/application", TypeID: "func() (github.com/spice-framework/spice-agent-tui.Shell, error)",
 		},
-		Facts: map[string]string{"symbol_kind": "function"},
+		Facts: facts,
 	}
 }

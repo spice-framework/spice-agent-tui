@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/spice-framework/spice-agent-tui/annotation/uitool"
@@ -31,7 +32,7 @@ func TestRunServesOnlyFramedProtocolOnStdout(t *testing.T) {
 				Target: sdk.TargetFunction, SymbolID: "example.com/application.NewTerminal", Name: "NewTerminal",
 				PackagePath: "example.com/application", TypeID: "func() github.com/spice-framework/spice-agent-tui.Shell",
 			},
-			Facts: map[string]string{"symbol_kind": "function"},
+			Facts: protocolFunctionResultFacts(t),
 		},
 	})
 	writeRequest(t, requests, 4, "shutdown", protocol.ShutdownParams{})
@@ -58,6 +59,22 @@ func TestRunServesOnlyFramedProtocolOnStdout(t *testing.T) {
 	}
 }
 
+func protocolFunctionResultFacts(t *testing.T) map[string]string {
+	t.Helper()
+	facts, err := sdk.EncodeFunctionResultFacts([]sdk.FunctionResultFact{{
+		TypeID:             "example.com/application.ShellAlias",
+		CanonicalTypeID:    "github.com/spice-framework/spice-agent-tui.Shell",
+		Kind:               sdk.GoTypeInterface,
+		NamedOriginPackage: "github.com/spice-framework/spice-agent-tui",
+		NamedOriginName:    "Shell",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	facts["symbol_kind"] = "function"
+	return facts
+}
+
 func TestRunRejectsWrongModeAndProtocolFailureWithoutStdoutNoise(t *testing.T) {
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
@@ -77,6 +94,66 @@ func TestRunRejectsWrongModeAndProtocolFailureWithoutStdoutNoise(t *testing.T) {
 	}
 	if code := run(nil, nil, io.Discard, errorWriter{}); code != 1 {
 		t.Fatalf("stderr failure code = %d", code)
+	}
+}
+
+func TestRunFramesMissingResultFactFailure(t *testing.T) {
+	requests := new(bytes.Buffer)
+	writeRequest(t, requests, 1, "initialize", protocol.InitializeParams{
+		Protocol: sdk.ProtocolV1Alpha2,
+		ToolPath: uitool.Path,
+	})
+	name, err := json.Marshal("terminal")
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeRequest(t, requests, 2, "analyze", protocol.AnalyzeParams{
+		Descriptor: sdk.Symbol{
+			Package: "github.com/spice-framework/spice-agent-tui/annotation/ui",
+			Name:    "UIShell",
+		},
+		Invocation: sdk.Invocation{
+			DescriptorPackage: "github.com/spice-framework/spice-agent-tui/annotation/ui",
+			DescriptorSymbol:  "UIShell",
+			CanonicalName:     "ui.UIShell",
+			Arguments: []sdk.InvocationArgument{{
+				Name: "name", Kind: sdk.KindString, Value: name,
+			}},
+			Declaration: sdk.Declaration{
+				Target: sdk.TargetFunction, SymbolID: "example.com/application.NewTerminal",
+				Name: "NewTerminal", PackagePath: "example.com/application",
+			},
+			Facts: map[string]string{"symbol_kind": "function"},
+		},
+	})
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	if code := run(
+		[]string{"spice-agent-tui-annotations", "--spice-stdio"},
+		requests,
+		stdout,
+		stderr,
+	); code != 0 {
+		t.Fatalf("run code = %d, stderr = %q", code, stderr.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	reader := bufio.NewReader(stdout)
+	var initialized protocol.Response
+	if err := protocol.ReadMessage(reader, &initialized); err != nil {
+		t.Fatal(err)
+	}
+	var failed protocol.Response
+	if err := protocol.ReadMessage(reader, &failed); err != nil {
+		t.Fatal(err)
+	}
+	if failed.ID != 2 || failed.Error == nil ||
+		!strings.Contains(failed.Error.Message, "requires generic function result facts") {
+		t.Fatalf("failure response = %#v", failed)
+	}
+	if trailing, readErr := io.ReadAll(reader); readErr != nil || len(trailing) != 0 {
+		t.Fatalf("unframed stdout = %q, %v", trailing, readErr)
 	}
 }
 

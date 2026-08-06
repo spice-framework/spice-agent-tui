@@ -16,10 +16,11 @@ import (
 // qualifiers, primary, fallback, and order are opt-in. The annotation does not
 // select the internal FixedRenderer, synthesize a model, or auto-configure a
 // shell. Its trusted native handler emits only generic provider and bean
-// metadata. Exact descriptor-result enforcement remains pending on the shared
-// compiler's generic Invocation.Facts type-domain support; the handler does not
-// parse TypeID or introduce TUI-specific compiler behavior. Callers must return
-// the documented exact interface until that generic contract is available.
+// metadata. The handler consumes generic compiler function-result facts and
+// requires exact canonical Renderer identity, its public named origin, and
+// interface kind. Go aliases are accepted; defined wrappers, anonymous
+// interfaces, and concrete results fail closed. Declaration.TypeID is never
+// parsed. Optional cleanup and error outputs retain the standard provider forms.
 //
 //	// @import { UIRenderer } from "github.com/spice-framework/spice-agent-tui/annotation/ui"
 //	// @UIRenderer(name="fixed", aliases=["default-renderer"], fallback=true, order=100)
@@ -50,8 +51,15 @@ func UIRenderer() sdk.Definition {
 	}
 }
 
-// UIRendererHandler validates invocation and bean metadata and contributes only
-// generic provider records. The compiler validates provider shape.
+// UIRendererHandler fails closed on missing or malformed compiler result facts,
+// validates the exact public Renderer contract, and contributes generic
+// provider records without executing or parsing the annotated factory.
 func UIRendererHandler(ctx context.Context, invocation sdk.Invocation) (sdk.Result, error) {
-	return providerMetadata(ctx, invocation, "UIRenderer")
+	return providerMetadata(
+		ctx,
+		invocation,
+		"UIRenderer",
+		rendererTypeID,
+		rendererOriginName,
+	)
 }
