@@ -60,12 +60,14 @@ review rather than an automatic version range update.
 
 `govulncheck`, `gosec`, vet, race tests, module-tidy comparison, reproducible
 vendor comparison, and vendor-only build/test are mandatory gates. Verification
-runs analysis offline after explicit dependency preparation.
+runs analysis offline after the explicit, source-preserving
+`make tools-bootstrap` target has populated the cache.
 
 ## Verification tools
 
 The isolated `tools` module pins golangci-lint 2.12.2, gofumpt 0.10.0,
 goimports/x-tools 0.48.0, gosec 2.28.0, govulncheck 1.1.4, and NilAway at
-`f4f8ac24c032`. They are build-time-only dependencies. The quality gate prepares
-them explicitly, then runs analysis with `GOPROXY=off`, `GOWORK=off`, and the
-local Go 1.26.5 toolchain.
+`f4f8ac24c032`. They are build-time-only dependencies. The explicit bootstrap
+downloads the complete product and tools graphs through private alternate
+module files, then every ordinary gate runs with `GOPROXY=off`, `GOWORK=off`,
+and the selected exact Go 1.26.5 executable.

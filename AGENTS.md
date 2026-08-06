@@ -18,8 +18,9 @@ invent those contracts.
   values. Do not add a private transport, protocol, or session API.
 - Do not add the Bubble Tea v2 dependency merely as a placeholder. Pin it only
   with real, tested presentation code and a recorded dependency review.
-- Commands use discrete arguments without a shell. Ordinary verification after
-  dependency preparation is offline and workspace-isolated.
+- Commands use discrete arguments without a shell. `make tools-bootstrap` is
+  the sole explicit network-enabled dependency preparation; ordinary
+  verification is offline and workspace-isolated.
 - Do not commit credentials, transcripts, prompts, model output, local state,
   generated binaries, or terminal recordings containing user data.
 

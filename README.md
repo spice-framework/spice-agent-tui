@@ -42,5 +42,8 @@ an annotated result is exactly `Shell` or `Renderer` awaits the compiler's
 generic `Invocation.Facts` type-domain support; no string parser or TUI-specific
 compiler switch substitutes for it. See `docs/annotations.md`.
 
-Go 1.26.5 is exact. Use `make fast` while editing, `make check` for the broader
-loop, and `make verify` before every commit.
+Go 1.26.5 is exact. On a fresh clone, run `make tools-bootstrap` once to
+populate the exact product and tools module graphs without changing tracked
+module files. All ordinary quality targets remain offline. Use `make fast`
+while editing, `make check` for the broader loop, and `make verify` before every
+commit. See `docs/verification.md` for the complete contract.
