@@ -1,7 +1,8 @@
 {
   "schema": 1,
   "go": "1.26.5",
-  "spice_agent_api": null,
+  "spice_agent_client": null,
+  "spice_agent_ui_values": null,
   "spice_core": null,
   "spice_toolchain": null
 }

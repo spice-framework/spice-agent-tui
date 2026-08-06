@@ -14,7 +14,7 @@ import (
 
 func TestValidateCompatibility(t *testing.T) {
 	t.Parallel()
-	valid := `{"schema":1,"go":"1.26.5","spice_agent_api":null,"spice_core":null,"spice_toolchain":null}`
+	valid := `{"schema":1,"go":"1.26.5","spice_agent_client":null,"spice_agent_ui_values":null,"spice_core":null,"spice_toolchain":null}`
 	tests := []struct {
 		name    string
 		content string
@@ -25,7 +25,8 @@ func TestValidateCompatibility(t *testing.T) {
 		{name: "unknown", content: strings.Replace(valid, `}`, `,"extra":true}`, 1), wantErr: "unknown field"},
 		{name: "trailing", content: valid + `{}`, wantErr: "trailing"},
 		{name: "wrong Go", content: strings.Replace(valid, "1.26.5", "1.26.4", 1), wantErr: "explicit null"},
-		{name: "premature API", content: strings.Replace(valid, `"spice_agent_api":null`, `"spice_agent_api":"v1"`, 1), wantErr: "explicit null"},
+		{name: "premature client", content: strings.Replace(valid, `"spice_agent_client":null`, `"spice_agent_client":"v1"`, 1), wantErr: "explicit null"},
+		{name: "premature UI values", content: strings.Replace(valid, `"spice_agent_ui_values":null`, `"spice_agent_ui_values":"v1"`, 1), wantErr: "explicit null"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -45,7 +46,7 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
 	writeFile(t, root, "go.mod", "module "+modulePath+"\n\ngo 1.26.0\n\ntoolchain go1.26.5\n")
-	writeFile(t, root, "compatibility.json", `{"schema":1,"go":"1.26.5","spice_agent_api":null,"spice_core":null,"spice_toolchain":null}`)
+	writeFile(t, root, "compatibility.json", `{"schema":1,"go":"1.26.5","spice_agent_client":null,"spice_agent_ui_values":null,"spice_core":null,"spice_toolchain":null}`)
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
 		"github.com/golangci/golangci-lint/v2 v2.12.2",
 		"github.com/securego/gosec/v2 v2.28.0",

@@ -2,19 +2,22 @@
 
 ## Mission
 
-Build the standalone terminal experience for Spice Agent after the protocol
-and host contracts have explicit owners. Phase 0 establishes repository and
-quality boundaries; it does not invent those contracts.
+Build the standalone terminal experience for Spice Agent after the high-level
+client/session and UI-neutral value contracts have explicit owners. The current
+repository foundation establishes ownership and quality boundaries; it does not
+invent those contracts.
 
 ## Invariants
 
 - Go 1.26.5 is mandatory.
-- Terminal presentation, input handling, and client application composition
-  belong here. Daemon behavior, coding-agent policy, compiler behavior, and
-  protocol ownership do not.
-- Do not add a transport or session API until its owning contract is adopted.
-- Do not introduce Bubble Tea merely as a placeholder. Pin it only with real,
-  tested presentation code and a recorded dependency review.
+- The Bubble Tea v2 shell, renderers, editor, commands, keybindings, terminal
+  presentation, input handling, and client application composition belong here.
+  Daemon behavior, coding-agent policy, compiler behavior, protocol ownership,
+  gRPC, and operating-system IPC do not.
+- Depend only on an adopted high-level client/session contract and UI-neutral
+  values. Do not add a private transport, protocol, or session API.
+- Do not add the Bubble Tea v2 dependency merely as a placeholder. Pin it only
+  with real, tested presentation code and a recorded dependency review.
 - Commands use discrete arguments without a shell. Ordinary verification after
   dependency preparation is offline and workspace-isolated.
 - Do not commit credentials, transcripts, prompts, model output, local state,

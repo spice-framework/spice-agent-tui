@@ -2,9 +2,10 @@
 
 ## Product graph
 
-Phase 0 uses only the Go standard library and exports no runtime behavior.
-Bubble Tea is deliberately not present: adding it before real presentation
-code would create maintenance and supply-chain cost without product value.
+The repository foundation uses only the Go standard library and exports no
+runtime behavior. Bubble Tea v2 is the accepted shell architecture but is
+deliberately not present: adding it before real presentation code would create
+maintenance and supply-chain cost without product value.
 
 Any future product dependency must document:
 
