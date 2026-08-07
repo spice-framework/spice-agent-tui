@@ -2,10 +2,9 @@
 
 ## Mission
 
-Build the standalone terminal experience for Spice Agent after the high-level
-client/session and UI-neutral value contracts have explicit owners. The current
-repository foundation establishes ownership and quality boundaries; it does not
-invent those contracts.
+Build the standalone terminal experience for Spice Agent around a minimal
+UI-facing Session SPI. The high-level client implementation, transport,
+discovery, reconnect, and daemon lifecycle remain owned outside this module.
 
 ## Invariants
 
@@ -14,8 +13,9 @@ invent those contracts.
   presentation, input handling, and client application composition belong here.
   Daemon behavior, coding-agent policy, compiler behavior, protocol ownership,
   gRPC, and operating-system IPC do not.
-- Depend only on an adopted high-level client/session contract and UI-neutral
-  values. Do not add a private transport, protocol, or session API.
+- Keep the public Session contract limited to UI-neutral Receive and Perform
+  operations. Do not add a private transport, protocol, discovery, or daemon
+  API.
 - Do not add the Bubble Tea v2 dependency merely as a placeholder. Pin it only
   with real, tested presentation code and a recorded dependency review.
 - Commands use discrete arguments without a shell. `make tools-bootstrap` is

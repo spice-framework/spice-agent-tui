@@ -241,11 +241,7 @@ func mustTerminalIO(t *testing.T, input io.Reader, output io.Writer) agenttui.Te
 
 func mustTerminalConfig(t *testing.T, accessible bool) agenttui.TerminalConfig {
 	t.Helper()
-	config, err := agenttui.NewTerminalConfig(accessible, "default", "revision-1", time.Second)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return config
+	return agenttui.NewTerminalConfig(accessible)
 }
 
 type blockingEffects struct {

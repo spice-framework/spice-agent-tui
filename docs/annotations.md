@@ -56,5 +56,7 @@ wrapper/anonymous/concrete negative fixtures.
 These annotations deliberately do not create a model, client session, input,
 output, shell, or renderer. They do not expose the internal presentation
 package, scan at runtime, mutate a container, or activate through dependency
-presence. Shell auto-configuration and a generated application remain deferred
-until the client/model/stream ownership contracts are stable.
+presence. Applications that want the library defaults must separately
+blank-import `github.com/spice-framework/spice-agent-tui/autoconfigure` and
+supply an exact `agenttui.Session` bean. The committed composition-proof target
+demonstrates that path through ordinary generated Go.

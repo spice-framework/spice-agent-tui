@@ -27,8 +27,13 @@ manifest, and catalog work above can be proved by executable product code.
 
 - [ ] Adopt the separately reviewed high-level Spice Agent client/session API.
 - [x] Define UI-neutral interaction and semantic-view values locally.
-- [ ] Define cancellation, reconnect, backpressure, and transcript-redaction behavior.
-- [ ] Add a deterministic fake client/session and lifecycle tests.
+- [x] Define the UI-facing immutable Session snapshot/update and one-shot effect
+      contracts, including cancellation, panic containment, revision ordering,
+      and nested-intent rejection.
+- [x] Add deterministic fake Session and lifecycle tests without inventing a
+      transport client.
+- [ ] Adopt client-owned reconnect, replay, backpressure, definition selection,
+      daemon discovery, and transcript-redaction behavior.
 - [ ] Keep the kernel, generated gRPC, daemon supervision, and OS IPC outside
       this module's dependency graph.
 
@@ -49,10 +54,15 @@ manifest, and catalog work above can be proved by executable product code.
       semantic submit/cancel/respond/quit actions, bounded command and terminal
       values, command-owned effects with stale-token protection, caller-context
       cancellation, and line-oriented accessible rendering.
-- [ ] Add shell auto-configuration only after model, client, input, and output
-      ownership contracts are stable.
-- [ ] Adapt the bounded command/intent contract to application commands only
-      after the client/session contract exists.
-- [ ] Translate the adopted session's stream, reconnect, backpressure, and error
-      contracts into the completed presentation message boundary.
+- [x] Add explicit shell auto-configuration with fallback renderer, Theme,
+      ordered bindings, initial view, OS streams, accessibility config, and
+      Shell; require an application-owned Session.
+- [x] Expose public renderer/shell factories without Bubble Tea or internal
+      presentation types.
+- [x] Prove the public blank-import graph through committed generated Spice Go,
+      freshness checks, external-package construction, startup, and shutdown.
+- [ ] Adapt the bounded command contract to distribution commands after the
+      client runner owns definition and endpoint selection.
+- [ ] Translate the adopted client's reconnect, replay, backpressure, and error
+      contracts into Session updates.
 - [ ] Verify packaged Windows and Linux executables against a real daemon.

@@ -47,11 +47,11 @@ func TestModelResizeAndKeyboardEditing(t *testing.T) {
 func TestModelResizeSequencePreservesStreamingAndEditorState(t *testing.T) {
 	t.Parallel()
 	model := fixtureModel(t, FixedRenderer{})
-	message, err := NewActivityMsg(1, mustText(t, "streaming"))
+	message, err := agenttui.NewActivityUpdate(1, mustText(t, "streaming"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	model = updateMessage(t, model, message)
+	model = updateMessage(t, model, sessionUpdateMsg{update: message})
 	wantEditor := model.Editor()
 	for _, dimensions := range [][2]int{{0, 0}, {1, 1}, {12, 3}, {240, 100}, {500, 500}, {32, 7}} {
 		model = updateMessage(t, model, tea.WindowSizeMsg{Width: dimensions[0], Height: dimensions[1]})
@@ -111,28 +111,24 @@ func TestModelAppliesRevisionedStreamingSnapshotsAndBoundsActivity(t *testing.T)
 	model := fixtureModel(t, FixedRenderer{})
 	view := fixtureView(t)
 	disconnected := mustStatusLevel(t, agenttui.StatusDisconnected, "session unavailable")
-	snapshot, err := NewSnapshotMsg(2, view.Workspace(), disconnected, view.Activity())
-	if err != nil {
-		t.Fatal(err)
-	}
+	snapshot := mustSnapshotUpdateMessage(t, 2, view.Workspace(), disconnected, view.Activity(), nil)
 	model = updateMessage(t, model, snapshot)
 	if model.Revision() != 2 || model.Status().Level() != agenttui.StatusDisconnected {
 		t.Fatalf("snapshot state = revision %d, status %q", model.Revision(), model.Status().Level())
 	}
-	stale, err := NewSnapshotMsg(1, view.Workspace(), mustStatusLevel(t, agenttui.StatusReady, "stale"), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	stale := mustSnapshotUpdateMessage(
+		t, 1, view.Workspace(), mustStatusLevel(t, agenttui.StatusReady, "stale"), nil, nil,
+	)
 	model = updateMessage(t, model, stale)
 	if model.Status().Level() != agenttui.StatusDisconnected {
 		t.Fatal("stale snapshot replaced current status")
 	}
 	for revision := uint64(3); revision < 3+agenttui.MaximumActivityItems+4; revision++ {
-		message, messageErr := NewActivityMsg(revision, mustText(t, fmt.Sprintf("stream %03d", revision)))
+		update, messageErr := agenttui.NewActivityUpdate(revision, mustText(t, fmt.Sprintf("stream %03d", revision)))
 		if messageErr != nil {
 			t.Fatal(messageErr)
 		}
-		model = updateMessage(t, model, message)
+		model = updateMessage(t, model, sessionUpdateMsg{update: update})
 	}
 	activity := model.Activity()
 	if len(activity) != agenttui.MaximumActivityItems || activity[len(activity)-1].String() != "stream 134" {
@@ -142,7 +138,7 @@ func TestModelAppliesRevisionedStreamingSnapshotsAndBoundsActivity(t *testing.T)
 	if model.Activity()[0].String() == "mutated" {
 		t.Fatal("Model.Activity() did not return a defensive copy")
 	}
-	unchanged := updateMessage(t, model, SnapshotMsg{})
+	unchanged := updateMessage(t, model, sessionUpdateMsg{})
 	if unchanged.Revision() != model.Revision() || unchanged.Status().Level() != model.Status().Level() ||
 		unchanged.Status().Message() != model.Status().Message() {
 		t.Fatal("invalid snapshot mutated model")
@@ -152,11 +148,14 @@ func TestModelAppliesRevisionedStreamingSnapshotsAndBoundsActivity(t *testing.T)
 func TestModelNavigatesBoundedPromptHistory(t *testing.T) {
 	t.Parallel()
 	model := fixtureModel(t, FixedRenderer{})
-	history, err := NewPromptHistoryMsg([]agenttui.Text{mustText(t, "first"), mustText(t, "second")})
+	history, err := agenttui.NewPromptHistoryUpdate(
+		1,
+		[]agenttui.Text{mustText(t, "first"), mustText(t, "second")},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
-	model = updateMessage(t, model, history)
+	model = updateMessage(t, model, sessionUpdateMsg{update: history})
 	model = updateKey(t, model, tea.Key{Code: tea.KeyUp})
 	if model.Editor().Value().String() != "second" {
 		t.Fatalf("previous history = %q", model.Editor().Value().String())
@@ -249,6 +248,26 @@ func mustBinding(t *testing.T, action agenttui.Action, keys []agenttui.Key) agen
 		t.Fatal(err)
 	}
 	return binding
+}
+
+func mustSnapshotUpdateMessage(
+	t *testing.T,
+	revision uint64,
+	workspace agenttui.WorkspaceState,
+	status agenttui.StatusState,
+	activity []agenttui.Text,
+	history []agenttui.Text,
+) sessionUpdateMsg {
+	t.Helper()
+	snapshot, err := agenttui.NewSessionSnapshot(revision, workspace, status, activity, history)
+	if err != nil {
+		t.Fatal(err)
+	}
+	update, err := agenttui.NewSnapshotUpdate(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return sessionUpdateMsg{update: update}
 }
 
 func updateKey(t *testing.T, model Model, key tea.Key) Model {

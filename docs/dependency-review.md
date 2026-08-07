@@ -41,11 +41,13 @@ Tea repository and is licensed MIT, which is compatible with this repository's
 Apache-2.0 license. It provides the terminal event loop, Windows and Unix input,
 renderer lifecycle, resize messages, and context-aware program cancellation.
 
-Bubble Tea is confined to `internal/presentation`; public contracts do not expose
-its types. The shell injects input/output and passes caller cancellation through
-`tea.WithContext`. It enables no logging, telemetry, persistence, process launch,
-or network access. The application still bounds all semantic data and terminal
-dimensions before passing them to the renderer.
+Bubble Tea is confined to `internal/presentation`; root and `terminal` public
+signatures do not expose its types. The shell injects input/output and passes
+caller cancellation through `tea.WithContext`. The private Session adapter
+maps validated UI-neutral updates to Bubble Tea messages, invokes each operation
+once, and contains panics. It enables no logging, telemetry, persistence,
+process launch, or network access. The application still bounds all semantic
+data and terminal dimensions before passing them to the renderer.
 
 The canonical module path is important: `github.com/charmbracelet/bubbletea/v2`
 is not an interchangeable import. The repository gate requires exactly

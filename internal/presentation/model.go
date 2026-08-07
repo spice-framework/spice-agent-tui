@@ -34,6 +34,8 @@ type Model struct {
 	receiveArmed     bool
 	operationToken   OperationToken
 	operationActive  bool
+	cancelToken      OperationToken
+	cancelActive     bool
 	lastResult       agenttui.CommandResult
 	hasLastResult    bool
 	pendingPrompt    agenttui.Text
@@ -117,12 +119,8 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		model.size = agenttui.BoundedSize(message.Width, message.Height)
 		return model, nil
-	case SnapshotMsg:
-		return model.applySnapshot(message), nil
-	case ActivityMsg:
-		return model.appendActivity(message), nil
-	case PromptHistoryMsg:
-		return model.applyPromptHistory(message), nil
+	case sessionUpdateMsg:
+		return model.applySessionUpdate(message.update), nil
 	case receiveCompletedMsg:
 		return model.completeReceive(message)
 	case effectCompletedMsg:
@@ -242,40 +240,47 @@ func failureView(accessible bool) tea.View {
 	return view
 }
 
-func (model Model) applySnapshot(message SnapshotMsg) Model {
-	if message.Validate() != nil || message.revision <= model.revision {
+func (model Model) applySessionUpdate(update agenttui.SessionUpdate) Model {
+	if update.Validate() != nil || update.Revision() <= model.revision {
 		return model
 	}
-	model.workspace = message.workspace
-	model.status = message.status
-	model.activity = append([]agenttui.Text(nil), message.activity...)
-	model.revision = message.revision
-	return model
-}
-
-func (model Model) appendActivity(message ActivityMsg) Model {
-	if message.Validate() != nil || message.revision <= model.revision {
-		return model
-	}
-	activity := append(append([]agenttui.Text(nil), model.activity...), message.item)
-	for len(activity) > 0 {
-		if _, err := agenttui.NewViewData(model.workspace, model.status, model.editor, activity); err == nil {
-			break
+	switch update.Kind() {
+	case agenttui.SessionUpdateSnapshot:
+		snapshot, present := update.Snapshot()
+		if !present {
+			return model
 		}
-		activity = activity[1:]
-	}
-	model.activity = activity
-	model.revision = message.revision
-	return model
-}
-
-func (model Model) applyPromptHistory(message PromptHistoryMsg) Model {
-	if message.Validate() != nil {
+		model.workspace = snapshot.Workspace()
+		model.status = snapshot.Status()
+		model.activity = snapshot.Activity()
+		model.promptHistory = snapshot.PromptHistory()
+		model.historyIndex = -1
+		model.historyDraft = model.editor
+	case agenttui.SessionUpdateActivity:
+		item, present := update.Activity()
+		if !present {
+			return model
+		}
+		activity := append(append([]agenttui.Text(nil), model.activity...), item)
+		for len(activity) > 0 {
+			if _, err := agenttui.NewViewData(model.workspace, model.status, model.editor, activity); err == nil {
+				break
+			}
+			activity = activity[1:]
+		}
+		model.activity = activity
+	case agenttui.SessionUpdatePromptHistory:
+		history, present := update.PromptHistory()
+		if !present {
+			return model
+		}
+		model.promptHistory = history
+		model.historyIndex = -1
+		model.historyDraft = model.editor
+	default:
 		return model
 	}
-	model.promptHistory = append([]agenttui.Text(nil), message.entries...)
-	model.historyIndex = -1
-	model.historyDraft = model.editor
+	model.revision = update.Revision()
 	return model
 }
 
@@ -328,6 +333,9 @@ func (model Model) issuePromptIntent(kind agenttui.IntentKind) (tea.Model, tea.C
 }
 
 func (model Model) issueIntent(kind agenttui.IntentKind, values []agenttui.Text) (Model, tea.Cmd) {
+	if kind == agenttui.IntentCancelActiveRun {
+		return model.issueCancelIntent()
+	}
 	if model.performEffect == nil || model.operationActive || model.operationToken == math.MaxUint64 {
 		return model, nil
 	}
@@ -340,7 +348,23 @@ func (model Model) issueIntent(kind agenttui.IntentKind, values []agenttui.Text)
 	return model, model.performEffect(model.operationToken, intent)
 }
 
+func (model Model) issueCancelIntent() (Model, tea.Cmd) {
+	if model.performEffect == nil || model.cancelActive || model.cancelToken == math.MaxUint64 {
+		return model, nil
+	}
+	intent, err := agenttui.NewIntent(agenttui.IntentCancelActiveRun, nil)
+	if err != nil {
+		return model, nil
+	}
+	model.cancelToken++
+	model.cancelActive = true
+	return model, model.performEffect(model.cancelToken, intent)
+}
+
 func (model Model) completeEffect(message effectCompletedMsg) (tea.Model, tea.Cmd) {
+	if message.kind == agenttui.IntentCancelActiveRun {
+		return model.completeCancelEffect(message), nil
+	}
 	if !model.operationActive || message.token != model.operationToken {
 		return model, nil
 	}
@@ -375,6 +399,25 @@ func (model Model) completeEffect(message effectCompletedMsg) (tea.Model, tea.Cm
 	return model, nil
 }
 
+func (model Model) completeCancelEffect(message effectCompletedMsg) Model {
+	if !model.cancelActive || message.token != model.cancelToken {
+		return model
+	}
+	model.cancelActive = false
+	if message.err != nil {
+		if status := effectErrorStatus(message.err); status.Validate() == nil {
+			model.status = status
+		}
+		return model
+	}
+	if message.result.Validate() != nil {
+		return model
+	}
+	model.lastResult = message.result
+	model.hasLastResult = true
+	return model
+}
+
 func (model Model) completeReceive(message receiveCompletedMsg) (tea.Model, tea.Cmd) {
 	if !model.receiveArmed || message.token != model.receiveToken {
 		return model, nil
@@ -387,12 +430,12 @@ func (model Model) completeReceive(message receiveCompletedMsg) (tea.Model, tea.
 		return model, nil
 	}
 	switch received := message.message.(type) {
-	case SnapshotMsg:
-		model = model.applySnapshot(received)
-	case ActivityMsg:
-		model = model.appendActivity(received)
-	case PromptHistoryMsg:
-		model = model.applyPromptHistory(received)
+	case sessionUpdateMsg:
+		if received.update.Validate() != nil || received.update.Revision() <= model.revision {
+			model.status = effectErrorStatus(errors.New("session update sequence is invalid"))
+			return model, nil
+		}
+		model = model.applySessionUpdate(received.update)
 	default:
 		return model, nil
 	}

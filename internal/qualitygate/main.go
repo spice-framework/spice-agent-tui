@@ -72,6 +72,7 @@ func run(ctx context.Context, root, mode string) error {
 	bootstrap := step{"explicit dependency bootstrap", func() error { return bootstrapDependencies(ctx, root, networkCommand) }}
 	formatting := step{"formatting", func() error { return format(ctx, root, false) }}
 	modules := step{"module and vendor", func() error { return checkModule(ctx, root) }}
+	composition := step{"Spice composition", func() error { return checkSpiceComposition(ctx, root) }}
 	vet := step{"go vet", func() error { return command(ctx, root, nil, "go", "vet", "./...") }}
 	test := step{"shuffled tests", func() error { return tests(ctx, root, false) }}
 	var steps []step
@@ -82,12 +83,12 @@ func run(ctx context.Context, root, mode string) error {
 		case "fast":
 			steps = []step{identity, test}
 		case "check":
-			steps = []step{identity, formatting, modules, vet, test}
+			steps = []step{identity, formatting, modules, composition, vet, test}
 		case "fmt":
 			steps = []step{identity, {"formatting write", func() error { return format(ctx, root, true) }}}
 		case "verify":
 			steps = []step{
-				identity, formatting, modules, vet,
+				identity, formatting, modules, composition, vet,
 				{"lint and nil safety", func() error { return lint(ctx, root) }},
 				{"security", func() error { return security(ctx, root) }},
 				test,
@@ -113,6 +114,20 @@ func run(ctx context.Context, root, mode string) error {
 	}
 	_, err := fmt.Fprintln(output, "==> all verification passed")
 	return err
+}
+
+func checkSpiceComposition(ctx context.Context, root string) error {
+	environment := map[string]string{
+		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOTOOLCHAIN": "local", "GOWORK": "off",
+	}
+	const fixture = "./internal/acceptance/composition"
+	if err := command(ctx, root, environment, "go", "tool", spiceTool, "verify", fixture); err != nil {
+		return err
+	}
+	return command(
+		ctx, root, environment, "go", "tool", spiceTool,
+		"generate", "--target", "compositionproof", "--check", fixture,
+	)
 }
 
 func networkAllowed(mode string) bool { return mode == "tools-bootstrap" }
@@ -460,6 +475,10 @@ func coverage(ctx context.Context, root string) (resultErr error) {
 	if err != nil {
 		return err
 	}
+	coveragePackages := handwrittenCoveragePackages(packages)
+	if len(coveragePackages) == 0 {
+		return errors.New("repository has no handwritten product packages")
+	}
 	profile, err := os.CreateTemp("", "spice-agent-tui-coverage-*.out")
 	if err != nil {
 		return err
@@ -469,7 +488,7 @@ func coverage(ctx context.Context, root string) (resultErr error) {
 		return closeErr
 	}
 	defer func() { resultErr = errors.Join(resultErr, os.Remove(path)) }()
-	arguments := []string{"test", "-covermode=atomic", "-coverpkg=" + strings.Join(packages, ","), "-coverprofile=" + path}
+	arguments := []string{"test", "-covermode=atomic", "-coverpkg=" + strings.Join(coveragePackages, ","), "-coverprofile=" + path}
 	arguments = append(arguments, packages...)
 	if coverageErr := command(ctx, root, nil, "go", arguments...); coverageErr != nil {
 		return coverageErr
@@ -497,6 +516,17 @@ func coverage(ctx context.Context, root string) (resultErr error) {
 		return fmt.Errorf("product coverage %.1f%% is below %.1f%%", percentage, minimumCoverage)
 	}
 	return nil
+}
+
+func handwrittenCoveragePackages(packages []string) []string {
+	generatedRoot := modulePath + "/internal/spicegen"
+	result := make([]string, 0, len(packages))
+	for _, candidate := range packages {
+		if candidate != generatedRoot && !strings.HasPrefix(candidate, generatedRoot+"/") {
+			result = append(result, candidate)
+		}
+	}
+	return result
 }
 
 func totalCoverage(report string) (float64, error) {

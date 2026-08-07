@@ -6,7 +6,6 @@ import (
 	"io"
 	"slices"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -14,10 +13,8 @@ const (
 	// MaximumCommandArguments bounds one command invocation.
 	MaximumCommandArguments = 32
 	// MaximumIntentValues bounds one semantic effect request.
-	MaximumIntentValues = 32
-	// MaximumShutdownTimeout bounds graceful terminal shutdown.
-	MaximumShutdownTimeout = 30 * time.Second
-	maximumIdentityBytes   = 128
+	MaximumIntentValues  = 32
+	maximumIdentityBytes = 128
 )
 
 // Invocation is one immutable, bounded command invocation. It contains only
@@ -202,55 +199,18 @@ func (terminal TerminalIO) Validate() error {
 	return nil
 }
 
-// TerminalConfig is immutable presentation startup policy. It selects a
-// server-owned definition by identity but does not discover or acquire a
-// daemon.
+// TerminalConfig is immutable presentation-only startup policy. Definition
+// selection, reconnect, and shutdown policy belong to the distribution's
+// client runner rather than the Bubble Tea shell.
 type TerminalConfig struct {
-	accessible         bool
-	definitionID       string
-	definitionRevision string
-	shutdownTimeout    time.Duration
+	accessible bool
 }
 
-// NewTerminalConfig constructs validated terminal presentation policy.
-func NewTerminalConfig(
-	accessible bool,
-	definitionID string,
-	definitionRevision string,
-	shutdownTimeout time.Duration,
-) (TerminalConfig, error) {
-	config := TerminalConfig{
-		accessible: accessible, definitionID: definitionID,
-		definitionRevision: definitionRevision, shutdownTimeout: shutdownTimeout,
-	}
-	return config, config.Validate()
-}
+// NewTerminalConfig constructs terminal presentation policy.
+func NewTerminalConfig(accessible bool) TerminalConfig { return TerminalConfig{accessible: accessible} }
 
 // Accessible reports whether line-oriented accessible presentation is enabled.
 func (config TerminalConfig) Accessible() bool { return config.accessible }
-
-// DefinitionID returns the selected server-owned agent definition identity.
-func (config TerminalConfig) DefinitionID() string { return config.definitionID }
-
-// DefinitionRevision returns the exact selected server-owned definition revision.
-func (config TerminalConfig) DefinitionRevision() string { return config.definitionRevision }
-
-// ShutdownTimeout returns the caller-selected graceful shutdown bound.
-func (config TerminalConfig) ShutdownTimeout() time.Duration { return config.shutdownTimeout }
-
-// Validate reports whether startup policy is initialized and bounded.
-func (config TerminalConfig) Validate() error {
-	if err := validateIdentity(config.definitionID, "definition ID"); err != nil {
-		return err
-	}
-	if err := validateIdentity(config.definitionRevision, "definition revision"); err != nil {
-		return err
-	}
-	if config.shutdownTimeout <= 0 || config.shutdownTimeout > MaximumShutdownTimeout {
-		return fmt.Errorf("shutdown timeout must be within 1ns and %s", MaximumShutdownTimeout)
-	}
-	return nil
-}
 
 func validateIdentity(value, name string) error {
 	if value == "" || len(value) > maximumIdentityBytes || strings.TrimSpace(value) != value {

@@ -20,14 +20,20 @@ not an older `go` that may appear first on `PATH`.
 - `make fast` validates repository identity and runs shuffled tests.
 - `make check` adds formatting, module/vendor consistency, vet, and shuffled tests.
 - `make verify` adds lint, NilAway, gosec, govulncheck, race tests, coverage, and
-  vendor-offline tests/builds, including the annotation tool smoke path and real
-  pinned Spice compiler fixtures for alias acceptance and invalid result types.
+  vendor-offline tests/builds, including the annotation tool smoke path, real
+  pinned Spice compiler fixtures for alias acceptance and invalid result types,
+  and byte-current generated public auto-configuration composition.
+  Generated `internal/spicegen` packages remain compilation and execution
+  inputs, but are excluded from the handwritten-product coverage denominator.
   Presentation acceptance includes fixed light/dark goldens at normal, compact
   Unicode, and 1x1 boundary sizes; exact row/column and cursor-cell assertions;
   revision/stale-update, rolling-bound, history-navigation, resize-sequence,
   accessible-mode and resize-stability, injected-binding collision, semantic
   action, command/effect ownership, stale-operation, prompt-commit,
-  concurrent-render, Ctrl-C, and blocked-receive cancellation tests.
+  concurrent-render, Ctrl-C, blocked-receive cancellation, Session panic,
+  one-shot operation, late-cancellation result precedence, concurrent Session
+  lanes, cancel control-lane availability, tagged-update, facade, Theme snapshot,
+  exact auto-configuration order, and external generated-shell normal-exit tests.
 
 The repository-owned verifier is cross-platform. `make fast`, `make check`, and
 `make verify` force `GOPROXY=off`; missing cache entries fail instead of causing

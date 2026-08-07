@@ -281,6 +281,15 @@ func TestGoFilesAndTreeDigests(t *testing.T) {
 
 func TestCoverageParsingAndModes(t *testing.T) {
 	t.Parallel()
+	packages := []string{
+		modulePath,
+		modulePath + "/internal/spicegen",
+		modulePath + "/internal/spicegen/compositionproof",
+		modulePath + "/terminal",
+	}
+	if got, want := handwrittenCoveragePackages(packages), []string{modulePath, modulePath + "/terminal"}; !slices.Equal(got, want) {
+		t.Fatalf("handwrittenCoveragePackages() = %v, want %v", got, want)
+	}
 	percentage, err := totalCoverage("total: (statements) 91.5%")
 	if err != nil || percentage != 91.5 {
 		t.Fatalf("totalCoverage() = %v, %v", percentage, err)

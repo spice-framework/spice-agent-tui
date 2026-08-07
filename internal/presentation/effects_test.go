@@ -100,6 +100,37 @@ func TestSemanticEffectUsesTokenAndCommitsPromptOnlyOnSuccess(t *testing.T) {
 	}
 }
 
+func TestCancelUsesIndependentControlLaneWhileOperationIsActive(t *testing.T) {
+	t.Parallel()
+	result, err := agenttui.NewCommandResult(mustText(t, "accepted"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	effects := &scriptedEffects{performResult: result}
+	model := fixtureEffectsModel(t, effects, t.Context())
+	updated, submit := model.Update(tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter}))
+	model = asModel(t, updated)
+	updated, cancel := model.Update(tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
+	model = asModel(t, updated)
+	if submit == nil || cancel == nil || !model.operationActive || !model.cancelActive {
+		t.Fatalf("control lanes = submit %v cancel %v operation %t cancel %t", submit, cancel, model.operationActive, model.cancelActive)
+	}
+	_, duplicateCancel := model.Update(tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
+	if duplicateCancel != nil {
+		t.Fatal("duplicate cancel armed while the cancel lane was active")
+	}
+	updated, _ = model.Update(cancel())
+	model = asModel(t, updated)
+	if model.cancelActive || !model.operationActive || effects.lastIntent.Kind() != agenttui.IntentCancelActiveRun {
+		t.Fatalf("cancel completion = operation %t cancel %t intent %q", model.operationActive, model.cancelActive, effects.lastIntent.Kind())
+	}
+	updated, _ = model.Update(submit())
+	model = asModel(t, updated)
+	if model.operationActive || model.cancelActive || effects.lastIntent.Kind() != agenttui.IntentSubmit {
+		t.Fatalf("submit completion = operation %t cancel %t intent %q", model.operationActive, model.cancelActive, effects.lastIntent.Kind())
+	}
+}
+
 func TestDefiniteEffectFailureRetainsDraftAndDoesNotRetry(t *testing.T) {
 	t.Parallel()
 	effects := &scriptedEffects{performErr: errors.New("unsafe\x1b[31m detail")}
@@ -171,13 +202,13 @@ func fixtureEffectsModel(t *testing.T, effects Effects, ctx context.Context) Mod
 	return model.withEffectsContext(ctx, nil)
 }
 
-func mustActivityMessage(t *testing.T, revision uint64, value string) ActivityMsg {
+func mustActivityMessage(t *testing.T, revision uint64, value string) sessionUpdateMsg {
 	t.Helper()
-	message, err := NewActivityMsg(revision, mustText(t, value))
+	update, err := agenttui.NewActivityUpdate(revision, mustText(t, value))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return message
+	return sessionUpdateMsg{update: update}
 }
 
 type scriptedEffects struct {

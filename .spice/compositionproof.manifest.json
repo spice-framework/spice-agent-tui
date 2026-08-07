@@ -1,0 +1,782 @@
+{
+  "schema": 5,
+  "target": {
+    "id": "compositionproof",
+    "layout": "generated-package",
+    "module": "github.com/spice-framework/spice-agent-tui",
+    "package": "github.com/spice-framework/spice-agent-tui/internal/spicegen/compositionproof",
+    "output_dir": "internal/spicegen/compositionproof",
+    "manifest_path": ".spice/compositionproof.manifest.json"
+  },
+  "generator_version": "0.1.0-dev",
+  "go_format_line": "1.26",
+  "input_sha256": "sha256:34985329e23861a895b81e05aa68c9eb80d2e8a51e00a15c03583c9f5f41c3a7",
+  "files": [
+    {
+      "path": "internal/spicegen/compositionproof/sources/autoconfigure/autoconfigure_spice_gen.go",
+      "sha256": "sha256:167671d47fb82143540c63b5c5bce0b7a087a258a724220bf8ea9602a6a7b22d",
+      "role": "source-unit",
+      "primary_source": {
+        "path": "autoconfigure/autoconfigure.go",
+        "line": 12,
+        "column": 6,
+        "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer"
+      },
+      "mappings": [
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 113,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell"
+          },
+          "generated": {
+            "start_line": 32,
+            "start_column": 4,
+            "end_line": 32,
+            "end_column": 35
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 16,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme"
+          },
+          "generated": {
+            "start_line": 43,
+            "start_column": 4,
+            "end_line": 43,
+            "end_column": 31
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 34,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding"
+          },
+          "generated": {
+            "start_line": 50,
+            "start_column": 4,
+            "end_line": 50,
+            "end_column": 36
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 101,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO"
+          },
+          "generated": {
+            "start_line": 61,
+            "start_column": 4,
+            "end_line": 61,
+            "end_column": 34
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 24,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding"
+          },
+          "generated": {
+            "start_line": 72,
+            "start_column": 4,
+            "end_line": 72,
+            "end_column": 38
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 12,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer"
+          },
+          "generated": {
+            "start_line": 83,
+            "start_column": 4,
+            "end_line": 83,
+            "end_column": 35
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 19,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding"
+          },
+          "generated": {
+            "start_line": 90,
+            "start_column": 4,
+            "end_line": 90,
+            "end_column": 38
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 75,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView"
+          },
+          "generated": {
+            "start_line": 101,
+            "start_column": 4,
+            "end_line": 101,
+            "end_column": 36
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 29,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding"
+          },
+          "generated": {
+            "start_line": 112,
+            "start_column": 4,
+            "end_line": 112,
+            "end_column": 39
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 107,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig"
+          },
+          "generated": {
+            "start_line": 123,
+            "start_column": 4,
+            "end_line": 123,
+            "end_column": 36
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 69,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding"
+          },
+          "generated": {
+            "start_line": 130,
+            "start_column": 4,
+            "end_line": 130,
+            "end_column": 41
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 54,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding"
+          },
+          "generated": {
+            "start_line": 141,
+            "start_column": 4,
+            "end_line": 141,
+            "end_column": 41
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 39,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding"
+          },
+          "generated": {
+            "start_line": 152,
+            "start_column": 4,
+            "end_line": 152,
+            "end_column": 42
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 44,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding"
+          },
+          "generated": {
+            "start_line": 163,
+            "start_column": 4,
+            "end_line": 163,
+            "end_column": 43
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 49,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding"
+          },
+          "generated": {
+            "start_line": 174,
+            "start_column": 4,
+            "end_line": 174,
+            "end_column": 43
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 64,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding"
+          },
+          "generated": {
+            "start_line": 185,
+            "start_column": 4,
+            "end_line": 185,
+            "end_column": 43
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding",
+          "source": {
+            "path": "autoconfigure/autoconfigure.go",
+            "line": 59,
+            "column": 6,
+            "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding"
+          },
+          "generated": {
+            "start_line": 196,
+            "start_column": 4,
+            "end_line": 196,
+            "end_column": 47
+          }
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/sources/internal_/acceptance/composition/application_spice_gen.go",
+      "sha256": "sha256:374f3b7937b0f43b5a18efd8d5e2c633429db2a09cf138c136b4c281a64117d8",
+      "role": "source-unit",
+      "primary_source": {
+        "path": "internal/acceptance/composition/application.go",
+        "line": 16,
+        "column": 4,
+        "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+      },
+      "mappings": [
+        {
+          "kind": "application-target",
+          "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof",
+          "source": {
+            "path": "internal/acceptance/composition/application.go",
+            "line": 40,
+            "column": 4,
+            "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+          },
+          "generated": {
+            "start_line": 16,
+            "start_column": 4,
+            "end_line": 16,
+            "end_column": 46
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession",
+          "source": {
+            "path": "internal/acceptance/composition/application.go",
+            "line": 16,
+            "column": 4,
+            "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+          },
+          "generated": {
+            "start_line": 19,
+            "start_column": 4,
+            "end_line": 19,
+            "end_column": 39
+          }
+        },
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder",
+          "source": {
+            "path": "internal/acceptance/composition/application.go",
+            "line": 27,
+            "column": 4,
+            "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
+          },
+          "generated": {
+            "start_line": 26,
+            "start_column": 4,
+            "end_line": 26,
+            "end_column": 34
+          }
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/spice_assembly_gen.go",
+      "sha256": "sha256:eee0b7854d4752fd5bf63ef5853d7b2fa26530d525c6ee3cf66269392ba2e507",
+      "role": "target-assembly",
+      "related_sources": [
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 12,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 16,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 19,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 24,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 29,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 34,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 39,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 44,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 49,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 54,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 59,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 64,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 69,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 75,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 101,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 107,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 113,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 16,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 27,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 40,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/spice_command_gen.go",
+      "sha256": "sha256:2afaeb2f943191295594a8584a6f2412f3de75279b790db1b9767d7b82d93096",
+      "role": "target-command",
+      "related_sources": [
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 40,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/spice_configuration_gen.go",
+      "sha256": "sha256:99802b022ee243ea84e9e518162c373f49b3753d04f5d1d9c415efa53302e8a4",
+      "role": "target-configuration",
+      "related_sources": [
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 40,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/spice_contracts_gen.go",
+      "sha256": "sha256:e79adbcaf8c5669937af43dd5f8fffa2dd102ed8962dc0d0a38a0c7b9278a25f",
+      "role": "target-contracts",
+      "related_sources": [
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 12,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 16,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 19,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 24,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 29,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 34,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 39,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 44,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 49,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 54,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 59,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 64,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 69,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 75,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 101,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 107,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 113,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 16,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 27,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 40,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/spice_lifecycle_gen.go",
+      "sha256": "sha256:0184facdc6475b5fa879631e6537990f88ac70adf9bd61e191d1506f959f3508",
+      "role": "target-lifecycle",
+      "related_sources": [
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 40,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/spice_providers_gen.go",
+      "sha256": "sha256:fecf79c0cd4f0782e8d323216453452efe59ad17fce252b5982562b72adc8be2",
+      "role": "target-providers",
+      "related_sources": [
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 12,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 16,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 19,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 24,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 29,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 34,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 39,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 44,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 49,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 54,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 59,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 64,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 69,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 75,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 101,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 107,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig"
+        },
+        {
+          "path": "autoconfigure/autoconfigure.go",
+          "line": 113,
+          "column": 6,
+          "symbol": "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 16,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 27,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
+        },
+        {
+          "path": "internal/acceptance/composition/application.go",
+          "line": 40,
+          "column": 4,
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+        }
+      ]
+    }
+  ]
+}

@@ -23,6 +23,19 @@ func TestModulithHasOneRootAndOnlyPublicAnnotationsAreNamed(t *testing.T) {
 		bytes.Contains(annotations, []byte("// @Module")) {
 		t.Fatalf("annotation named interface = %q", annotations)
 	}
+	for path, name := range map[string]string{
+		"autoconfigure/doc.go": "autoconfigure",
+		"terminal/doc.go":      "terminal",
+	} {
+		content, readErr := os.ReadFile(path) // #nosec G304 -- fixed repository contract paths.
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		marker := []byte("// @NamedInterface(\"" + name + "\")")
+		if bytes.Count(content, marker) != 1 || bytes.Contains(content, []byte("// @Module")) {
+			t.Fatalf("public %s named interface = %q", name, content)
+		}
+	}
 	presentation, err := os.ReadFile("internal/presentation/doc.go")
 	if err != nil {
 		t.Fatal(err)

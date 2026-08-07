@@ -10,17 +10,19 @@ import (
 
 func TestManifestIsCanonicalExplicitAndCompatible(t *testing.T) {
 	t.Parallel()
-	spec := agenttui.Manifest.Spec()
+	manifest := agenttui.Manifest()
+	spec := manifest.Spec()
 	if spec.ID != "github.com/spice-framework/spice-agent-tui" ||
 		spec.Activation.Mode != starter.ActivationExplicitConstructor ||
-		len(spec.Activation.EntryPoints) != 1 || spec.Activation.EntryPoints[0].Symbol != "NewViewData" ||
+		len(spec.Activation.EntryPoints) != 2 || spec.Activation.EntryPoints[0].Symbol != "NewFixedRenderer" ||
+		spec.Activation.EntryPoints[1].Symbol != "NewShell" ||
 		len(spec.Annotations) != 0 || len(spec.ApplicationFeatures) != 0 {
 		t.Fatalf("manifest = %#v", spec)
 	}
-	if err := agenttui.Manifest.Compatible(starter.APIVersion, "go1.26.5"); err != nil {
+	if err := manifest.Compatible(starter.APIVersion, "go1.26.5"); err != nil {
 		t.Fatal(err)
 	}
-	content, err := agenttui.Manifest.JSON()
+	content, err := manifest.JSON()
 	if err != nil {
 		t.Fatal(err)
 	}

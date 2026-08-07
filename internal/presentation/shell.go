@@ -27,9 +27,6 @@ func NewShell(
 	if err := terminal.Validate(); err != nil {
 		return nil, err
 	}
-	if err := config.Validate(); err != nil {
-		return nil, err
-	}
 	return &bubbleShell{model: model.WithAccessibleMode(config.Accessible()), terminal: terminal}, nil
 }
 

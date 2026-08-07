@@ -1,94 +1,124 @@
 # Spice Agent TUI
 
-This repository provides the UI foundation for the standalone Spice Agent
-terminal client. Its first production slice includes:
+This repository owns the terminal experience for Spice Agent. Its public API is
+UI-neutral; Bubble Tea v2 is confined to `internal/presentation` and is reached
+through the `terminal` facade.
 
-- bounded immutable semantic view, status, prompt, keybinding, and theme values;
-- a deterministic fixed-size renderer with distinct light and dark palettes,
-  explicit textual status labels, and an accessible unstyled mode;
-- a Bubble Tea v2 model with deterministic resize, revisioned streaming
-  snapshots, bounded rolling activity and prompt history, and keyboard
-  navigation;
-- constructor-injected ordered key bindings with deterministic duplicate-action
-  and duplicate-key rejection, including separate submit, cancel-run, respond,
-  and explicit Ctrl-C quit actions;
-- bounded immutable terminal configuration, terminal I/O, command invocation,
-  command result, and semantic intent values;
-- a command-owned asynchronous effects seam with run-context cancellation,
-  one active receive, stale-token rejection, no optimistic prompt loss, and a
-  no-I/O fallback;
-- grapheme-safe Unicode editing with a display-cell-positioned cursor; and
-- a cancellation-aware shell with injected input/output and clean Ctrl-C exit;
+The implemented slice includes:
+
+- bounded immutable text, workspace, status, prompt, theme, frame, command,
+  intent, session snapshot, and tagged session-update values;
+- a `Session` seam with only `Receive(context.Context)` and
+  `Perform(context.Context, Intent)`;
+- deterministic fixed-size light/dark rendering and accessible line-oriented
+  rendering;
+- grapheme-safe editing, injected ordered key bindings, bounded history and
+  activity, monotonic revision handling, and stale-update rejection;
+- cancellation-aware Bubble Tea lifecycle and panic-contained one-shot session
+  effects;
+- public `terminal.NewFixedRenderer` and `terminal.NewShell` factories whose
+  signatures expose no Bubble Tea or internal types;
 - canonical `@UIShell` and `@UIRenderer` provider annotations; and
-- an authorized v1alpha2 stdio annotation tool selected through Go modules.
+- explicit `/autoconfigure` fallback beans proven by committed generated Go.
 
-The source intentionally does **not** pretend that the agent connection exists.
-There is no daemon discovery, transport, client/session adapter, shell
-auto-configuration, generated Spice application, or terminal binary yet. The next slice must
-adopt the reviewed high-level client contract and inject it through an
-application composition root. The presentation package will never import the
-agent kernel, generated gRPC, daemon supervision, or operating-system IPC.
+## Session boundary
 
-The public package is renderer-neutral. Bubble Tea is confined to
-`internal/presentation`, so semantic data and commands remain straightforward to
-test and reuse. All semantic text rejects terminal control sequences, aggregate
-views and frames are bounded, snapshots clone caller-owned slices, and every
-render has an exact visible width and height. Presentation updates use positive,
-monotonically increasing revisions; stale updates are ignored and rolling
-activity evicts its oldest entries before exceeding view limits. This is a
-client-neutral Bubble Tea message boundary, not a session or transport API.
+An application injects an implementation of:
 
-`StatusDisconnected`, `StatusReconnecting`, and `StatusError` are rendered as
-literal bracketed labels, so status never depends on color alone. Accessible
-mode emits line-oriented semantic text without ANSI styling, alternate-screen
-presentation, cursor control, fixed-canvas padding, or resize-only replay.
-Home/End and Ctrl+A/Ctrl+E
-move by prompt boundaries; Up/Down navigate a maximum of 64 injected history
-entries. Left/Right and Backspace operate on Unicode grapheme clusters rather
-than splitting combining text or joined emoji.
+```go
+type Session interface {
+    Receive(context.Context) (SessionUpdate, error)
+    Perform(context.Context, Intent) (CommandResult, error)
+}
+```
 
-Key policy is explicit application composition. `StandardKeyBindings` is a
-convenience bean candidate, never an implicit model fallback: Ctrl-C/Ctrl-Q
-quit, Escape/Ctrl-X cancel the active run, Enter submits, and Alt-Enter responds
-to a pending interaction. The model copies and validates injected bindings in
-order. An application may replace the entire set without modifying presentation
-code.
+`Receive` owns one strictly increasing positive revision sequence. Updates are a
+closed tagged union of complete snapshots, activity items, and prompt-history
+replacements. Constructors validate all text and aggregate bounds and clone
+caller-owned slices. A non-monotonic value stops the receive loop with a safe
+visible error rather than spinning on a broken stream. Presentation invokes
+each session operation exactly once: it does not reconnect, replay, or retry. A
+transport client owns those policies. Implementations must be concurrency-safe
+for one blocking receive, one ordinary operation, and one cancel-run operation;
+the shell serializes calls within each lane.
+Panics become the fixed error `session operation panicked`; panic values cannot
+reach the terminal. Cancellation causes remain observable with `errors.Is`, but
+a valid result or explicit error returned by the Session wins a concurrent late
+cancellation so committed work is not misreported.
+A `CommandResult` returned from `Perform` may not contain another intent.
 
-`TerminalConfig` selects an exact server-owned definition ID and revision plus
-accessibility and bounded shutdown policy. `TerminalIO` contains caller-owned
-streams. Neither value discovers, starts, or attaches to a daemon. Likewise,
-commands accept only an immutable bounded invocation and return a typed bounded
-result with an optional semantic intent; injected services never travel through
-an invocation or registry.
+## Direct composition
 
-Applications opt into annotation metadata explicitly:
+```go
+renderer := terminal.NewFixedRenderer()
+bindings, err := agenttui.StandardKeyBindings()
+shell, err := terminal.NewShell(
+    session,
+    renderer,
+    agenttui.DarkTheme(),
+    bindings,
+    initialView,
+    streams,
+    agenttui.NewTerminalConfig(accessible),
+)
+```
+
+`TerminalConfig` is presentation-only and currently selects accessible mode.
+Definition selection, revision selection, reconnect, and graceful daemon
+shutdown belong to the future distribution/client runner. The constructor
+snapshots the injected `Theme` SPI and key bindings, so later mutable provider
+state cannot alter the running shell.
+
+## Spice auto-configuration
+
+Applications opt in explicitly:
+
+```go
+import _ "github.com/spice-framework/spice-agent-tui/autoconfigure"
+```
+
+The package contributes fallback beans for the fixed renderer, dark `Theme`,
+eleven standard ordered `KeyBinding` values, connecting initial `ViewData`, OS
+terminal streams, normal `TerminalConfig`, and the terminal `Shell`. It never
+creates a fake session or a client configuration. Without an application-owned
+exact `agenttui.Session` bean, the shell fallback remains inactive.
+
+Key bindings are individual named collection elements because Spice collection
+injection is `[]KeyBinding`, not an opaque slice provider. This preserves exact
+generated order and gives embedding/tests typed per-bean overrides. Current
+source-level collection selection does not back off fallback elements by bean
+name; an application that needs a different binding set supplies its own Shell.
+Duplicate actions and keystrokes fail during shell construction.
+
+The committed `internal/spicegen/compositionproof` target is generated from an
+external-package acceptance fixture. It proves direct construction, collection
+order, exact Session injection, fallback activation, source mapping, generated
+freshness, compilation, explicit `NewApplication` → `Start` → `Shell.Run` →
+`Stop` normal exit, and shutdown without reflection or a runtime registry.
+
+## Annotations
+
+Applications may define explicit providers with the TUI annotation tool:
 
 ```go
 // @import { UIShell, UIRenderer } from "github.com/spice-framework/spice-agent-tui/annotation/ui"
 
 // @UIShell(name="terminal", primary=true)
-func NewTerminalShell(model Model, terminal agenttui.TerminalIO, config agenttui.TerminalConfig) agenttui.Shell
+func NewApplicationShell(...) agenttui.Shell
 
 // @UIRenderer(name="fixed", fallback=true)
-func NewFixedRenderer(config RenderConfig) agenttui.Renderer
+func NewApplicationRenderer(...) agenttui.Renderer
 ```
 
-The handlers contribute only generic Spice provider and bean metadata. They
-decode the shared compiler's generic result facts and require exact canonical
-`Shell` or `Renderer` identity with interface kind and public named origin.
-Real Go aliases work; defined wrappers, anonymous interfaces, concrete results,
-missing facts, and malformed facts fail closed. The handlers never parse
-`Declaration.TypeID`. Constructor parameters and generated calls remain owned
-by the shared typed compiler. See `docs/annotations.md`.
+The handlers consume shared compiler result facts and require the exact public
+interface identity while preserving Go aliases. They never execute providers,
+parse type-name strings, or add TUI behavior to the compiler. See
+[`docs/annotations.md`](docs/annotations.md).
 
-The module pins the exact Spice core and toolchain revisions that define and
-produce these facts. Repository acceptance runs the real pinned `spice verify`
-tool against alias-positive and source-positioned negative fixtures. This is a
-compiler-development dependency only; no client, daemon, or transport wiring
-has been added.
+This repository still does not own a daemon, gRPC, operating-system IPC,
+managed-daemon discovery, or a terminal executable. Those arrive through an
+adopted high-level client and the distribution repository.
 
-Go 1.26.5 is exact. On a fresh clone, run `make tools-bootstrap` once to
-populate the exact product and tools module graphs without changing tracked
-module files. All ordinary quality targets remain offline. Use `make fast`
-while editing, `make check` for the broader loop, and `make verify` before every
-commit. See `docs/verification.md` for the complete contract.
+Go 1.26.5 is exact. Run `make tools-bootstrap` once on a fresh clone, `make
+fast` for affected feedback, `make check` for the broad edit loop, and `make
+verify` before a commit. Ordinary verification is offline.

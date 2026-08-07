@@ -20,6 +20,7 @@ func TestRealSpiceToolEnforcesTUIResultContracts(t *testing.T) {
 		pattern string
 		want    string
 	}{
+		{name: "autoconfigured public composition", pattern: "./internal/acceptance/composition"},
 		{name: "aliases", pattern: "./internal/acceptance/resultfacts/alias"},
 		{
 			name:    "defined wrapper",
@@ -78,6 +79,34 @@ func TestRealSpiceToolEnforcesTUIResultContracts(t *testing.T) {
 				t.Fatalf("Spice verify output = %q, want source path and %q", text, test.want)
 			}
 		})
+	}
+}
+
+func TestGeneratedPublicCompositionIsCurrent(t *testing.T) {
+	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
+	defer cancel()
+	command := exec.CommandContext(
+		ctx,
+		goExecutable(),
+		"tool",
+		spiceTool,
+		"generate",
+		"--check",
+		"--target",
+		"CompositionProof",
+		"./internal/acceptance/composition",
+	)
+	command.Env = append(
+		os.Environ(),
+		"GOPROXY=off",
+		"GOTOOLCHAIN=local",
+		"GOWORK=off",
+	)
+	if output, err := command.CombinedOutput(); err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			t.Fatalf("Spice generation freshness timed out:\n%s", output)
+		}
+		t.Fatalf("Spice generation freshness: %v\n%s", err, output)
 	}
 }
 

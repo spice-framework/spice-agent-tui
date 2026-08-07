@@ -12,16 +12,23 @@ must never be executed, interpolated into a shell, or persisted without an
 explicit user-owned destination. Authentication material must be instance-owned,
 redacted, and excluded from logs and crash reports.
 
-Revisioned presentation messages defensively copy semantic values, reject stale
-or malformed updates, and evict the oldest activity before item or aggregate
-view bounds can be exceeded. Prompt history is memory-only, injected explicitly,
-and capped at 64 entries. This layer does not persist, log, redact, transmit, or
-recover prompts; callers must supply already-redacted semantic text.
+Revisioned Session values defensively copy semantic values, reject stale or
+malformed updates, and evict the oldest activity before item or aggregate view
+bounds can be exceeded. Prompt history is memory-only, injected explicitly, and
+capped at 64 entries. Each presentation effect invokes the injected Session
+exactly once: it never retries an uncertain operation. Session panics become a
+fixed error that does not disclose the panic value, and nested intents are
+rejected. This layer does not persist, log, redact, transmit, or recover prompts;
+callers must supply already-redacted semantic text.
 
-The shell accepts its context, input, output, model, renderer, and theme from its
-caller. It performs no network access, module download, daemon discovery, process
-launch, filesystem persistence, or global registration. Cancellation terminates
-the Bubble Tea program and is returned to the caller.
+The shell accepts its context, Session, input, output, renderer, theme, bindings,
+initial view, and presentation config from its caller. Theme and binding state
+is snapshotted during construction. The shell performs no network access,
+module download, daemon discovery, process launch, filesystem persistence, or
+global registration. Cancellation terminates active receives and performs and
+is returned to the caller. The opt-in OS terminal bean binds only `os.Stdin` and
+`os.Stdout`; auto-configuration deliberately contains no Session or client
+configuration.
 
 Product dependencies are pinned and vendored; their review is recorded in
 `docs/dependency-review.md`. Build tools are independently pinned in

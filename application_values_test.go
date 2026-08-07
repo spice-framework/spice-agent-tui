@@ -6,7 +6,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestInvocationIntentAndResultAreBoundedImmutableValues(t *testing.T) {
@@ -94,25 +93,9 @@ func TestTerminalIOAndConfigAreExplicitValidatedValues(t *testing.T) {
 	if _, validationErr := NewTerminalIO(input, nil); validationErr == nil {
 		t.Fatal("NewTerminalIO(nil output) error = nil")
 	}
-	config, err := NewTerminalConfig(true, "coding/default", "revision-7", 2*time.Second)
-	if err != nil || !config.Accessible() || config.DefinitionID() != "coding/default" ||
-		config.DefinitionRevision() != "revision-7" || config.ShutdownTimeout() != 2*time.Second {
-		t.Fatalf("NewTerminalConfig() = %#v, %v", config, err)
-	}
-	for _, test := range []struct {
-		definition string
-		revision   string
-		timeout    time.Duration
-	}{
-		{definition: "", revision: "revision-1", timeout: time.Second},
-		{definition: "bad definition", revision: "revision-1", timeout: time.Second},
-		{definition: "valid", timeout: time.Second},
-		{definition: "valid", revision: "revision-1", timeout: 0},
-		{definition: "valid", revision: "revision-1", timeout: MaximumShutdownTimeout + time.Nanosecond},
-	} {
-		if _, configErr := NewTerminalConfig(false, test.definition, test.revision, test.timeout); configErr == nil {
-			t.Fatalf("NewTerminalConfig(%q, %s) error = nil", test.definition, test.timeout)
-		}
+	config := NewTerminalConfig(true)
+	if !config.Accessible() {
+		t.Fatalf("NewTerminalConfig() = %#v", config)
 	}
 }
 
