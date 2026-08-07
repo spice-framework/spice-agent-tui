@@ -68,7 +68,12 @@ func run(ctx context.Context, root, mode string) error {
 	if runtime.Version() != requiredGoVersion {
 		return fmt.Errorf("go version is %s; require exactly %s", runtime.Version(), requiredGoVersion)
 	}
-	identity := step{"repository identity", func() error { return checkIdentity(root) }}
+	identity := step{"repository identity", func() error {
+		if err := checkIdentity(root); err != nil {
+			return err
+		}
+		return checkReleaseMetadata(root)
+	}}
 	bootstrap := step{"explicit dependency bootstrap", func() error { return bootstrapDependencies(ctx, root, networkCommand) }}
 	formatting := step{"formatting", func() error { return format(ctx, root, false) }}
 	modules := step{"module and vendor", func() error { return checkModule(ctx, root) }}

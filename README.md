@@ -126,3 +126,11 @@ adopted high-level client and the distribution repository.
 Go 1.26.5 is exact. Run `make tools-bootstrap` once on a fresh clone, `make
 fast` for affected feedback, `make check` for the broad edit loop, and `make
 verify` before a commit. Ordinary verification is offline.
+
+## Release contract
+
+`spice-release.json` is inert, canonical metadata for the centrally authorized
+`go-module-v1` release profile. `make verify-release` runs the repository's
+complete local gate. The organization release authority independently binds
+the repository name, module path, exact preview version, required module graph,
+commit, and tag before it creates any artifact or release.
