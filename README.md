@@ -9,6 +9,14 @@ terminal client. Its first production slice includes:
 - a Bubble Tea v2 model with deterministic resize, revisioned streaming
   snapshots, bounded rolling activity and prompt history, and keyboard
   navigation;
+- constructor-injected ordered key bindings with deterministic duplicate-action
+  and duplicate-key rejection, including separate submit, cancel-run, respond,
+  and explicit Ctrl-C quit actions;
+- bounded immutable terminal configuration, terminal I/O, command invocation,
+  command result, and semantic intent values;
+- a command-owned asynchronous effects seam with run-context cancellation,
+  one active receive, stale-token rejection, no optimistic prompt loss, and a
+  no-I/O fallback;
 - grapheme-safe Unicode editing with a display-cell-positioned cursor; and
 - a cancellation-aware shell with injected input/output and clean Ctrl-C exit;
 - canonical `@UIShell` and `@UIRenderer` provider annotations; and
@@ -32,10 +40,26 @@ client-neutral Bubble Tea message boundary, not a session or transport API.
 
 `StatusDisconnected`, `StatusReconnecting`, and `StatusError` are rendered as
 literal bracketed labels, so status never depends on color alone. Accessible
-mode removes ANSI styling and the alternate screen. Home/End and Ctrl+A/Ctrl+E
+mode emits line-oriented semantic text without ANSI styling, alternate-screen
+presentation, cursor control, fixed-canvas padding, or resize-only replay.
+Home/End and Ctrl+A/Ctrl+E
 move by prompt boundaries; Up/Down navigate a maximum of 64 injected history
 entries. Left/Right and Backspace operate on Unicode grapheme clusters rather
 than splitting combining text or joined emoji.
+
+Key policy is explicit application composition. `StandardKeyBindings` is a
+convenience bean candidate, never an implicit model fallback: Ctrl-C/Ctrl-Q
+quit, Escape/Ctrl-X cancel the active run, Enter submits, and Alt-Enter responds
+to a pending interaction. The model copies and validates injected bindings in
+order. An application may replace the entire set without modifying presentation
+code.
+
+`TerminalConfig` selects an exact server-owned definition ID and revision plus
+accessibility and bounded shutdown policy. `TerminalIO` contains caller-owned
+streams. Neither value discovers, starts, or attaches to a daemon. Likewise,
+commands accept only an immutable bounded invocation and return a typed bounded
+result with an optional semantic intent; injected services never travel through
+an invocation or registry.
 
 Applications opt into annotation metadata explicitly:
 
@@ -43,7 +67,7 @@ Applications opt into annotation metadata explicitly:
 // @import { UIShell, UIRenderer } from "github.com/spice-framework/spice-agent-tui/annotation/ui"
 
 // @UIShell(name="terminal", primary=true)
-func NewTerminalShell(model Model, streams Streams) agenttui.Shell
+func NewTerminalShell(model Model, terminal agenttui.TerminalIO, config agenttui.TerminalConfig) agenttui.Shell
 
 // @UIRenderer(name="fixed", fallback=true)
 func NewFixedRenderer(config RenderConfig) agenttui.Renderer

@@ -45,9 +45,14 @@ manifest, and catalog work above can be proved by executable product code.
       grapheme-safe editing and cursor placement, deterministic resize,
       revisioned snapshot/activity updates, bounded prompt history, keyboard
       navigation, multi-size light/dark goldens, and clean Ctrl-C cancellation.
+- [x] Prepare adapter-neutral Phase 4 contracts: injected ordered key bindings,
+      semantic submit/cancel/respond/quit actions, bounded command and terminal
+      values, command-owned effects with stale-token protection, caller-context
+      cancellation, and line-oriented accessible rendering.
 - [ ] Add shell auto-configuration only after model, client, input, and output
       ownership contracts are stable.
-- [ ] Adopt application commands only after the client/session contract exists.
+- [ ] Adapt the bounded command/intent contract to application commands only
+      after the client/session contract exists.
 - [ ] Translate the adopted session's stream, reconnect, backpressure, and error
       contracts into the completed presentation message boundary.
 - [ ] Verify packaged Windows and Linux executables against a real daemon.

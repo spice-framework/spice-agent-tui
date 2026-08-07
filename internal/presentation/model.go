@@ -1,8 +1,10 @@
 package presentation
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"math"
 
 	tea "charm.land/bubbletea/v2"
 	agenttui "github.com/spice-framework/spice-agent-tui"
@@ -11,19 +13,31 @@ import (
 // Model is the deterministic Bubble Tea v2 presentation state. It owns no
 // client, daemon, transport, annotation, or generated-application behavior.
 type Model struct {
-	renderer      agenttui.Renderer
-	workspace     agenttui.WorkspaceState
-	status        agenttui.StatusState
-	editor        agenttui.EditorState
-	activity      []agenttui.Text
-	bindings      []agenttui.Binding
-	theme         agenttui.ThemeState
-	size          agenttui.Size
-	revision      uint64
-	accessible    bool
-	promptHistory []agenttui.Text
-	historyIndex  int
-	historyDraft  agenttui.EditorState
+	renderer         agenttui.Renderer
+	workspace        agenttui.WorkspaceState
+	status           agenttui.StatusState
+	editor           agenttui.EditorState
+	activity         []agenttui.Text
+	bindings         []agenttui.Binding
+	effects          Effects
+	effectsCancel    context.CancelFunc
+	receiveEffect    func(OperationToken) tea.Cmd
+	performEffect    func(OperationToken, agenttui.Intent) tea.Cmd
+	theme            agenttui.ThemeState
+	size             agenttui.Size
+	revision         uint64
+	accessible       bool
+	promptHistory    []agenttui.Text
+	historyIndex     int
+	historyDraft     agenttui.EditorState
+	receiveToken     OperationToken
+	receiveArmed     bool
+	operationToken   OperationToken
+	operationActive  bool
+	lastResult       agenttui.CommandResult
+	hasLastResult    bool
+	pendingPrompt    agenttui.Text
+	hasPendingPrompt bool
 }
 
 // NewModel constructs a bounded presentation model from immutable snapshots.
@@ -34,6 +48,8 @@ func NewModel(
 	editor agenttui.EditorState,
 	activity []agenttui.Text,
 	theme agenttui.ThemeState,
+	bindings []agenttui.KeyBinding,
+	effects Effects,
 ) (Model, error) {
 	if renderer == nil {
 		return Model{}, errors.New("renderer must not be nil")
@@ -44,16 +60,22 @@ func NewModel(
 	if _, err := agenttui.NewViewData(workspace, status, editor, activity); err != nil {
 		return Model{}, err
 	}
-	bindings, err := defaultBindings()
+	normalizedBindings, err := normalizeBindings(bindings)
 	if err != nil {
 		return Model{}, err
 	}
-	return Model{
+	model := Model{
 		renderer: renderer, workspace: workspace, status: status, editor: editor,
-		activity: append([]agenttui.Text(nil), activity...), bindings: bindings,
-		theme: theme, size: agenttui.BoundedSize(80, 24), historyIndex: -1,
+		activity: append([]agenttui.Text(nil), activity...), bindings: normalizedBindings,
+		effects: effects,
+		theme:   theme, size: agenttui.BoundedSize(80, 24), historyIndex: -1,
 		historyDraft: editor,
-	}, nil
+	}
+	if effects != nil {
+		model.receiveToken = 1
+		model.receiveArmed = true
+	}
+	return model, nil
 }
 
 // WithAccessibleMode returns a model that renders unstyled text without the
@@ -64,8 +86,30 @@ func (model Model) WithAccessibleMode(enabled bool) Model {
 	return model
 }
 
-// Init implements tea.Model without starting background work.
-func (Model) Init() tea.Cmd { return nil }
+// withEffectsContext binds all asynchronous commands to one shell-owned
+// lifecycle. The context is never accepted through public semantic values.
+func (model Model) withEffectsContext(ctx context.Context, cancel context.CancelFunc) Model {
+	model.effectsCancel = cancel
+	if model.effects != nil {
+		effects := model.effects
+		model.receiveEffect = func(token OperationToken) tea.Cmd {
+			return receiveCommand(ctx, effects, token)
+		}
+		model.performEffect = func(token OperationToken, intent agenttui.Intent) tea.Cmd {
+			return effectCommand(ctx, effects, token, intent)
+		}
+	}
+	return model
+}
+
+// Init implements tea.Model. When effects are injected it returns one command
+// that owns the blocking receive; Init itself performs no I/O.
+func (model Model) Init() tea.Cmd {
+	if model.receiveEffect == nil || !model.receiveArmed {
+		return nil
+	}
+	return model.receiveEffect(model.receiveToken)
+}
 
 // Update implements tea.Model using only resize and presentation key events.
 func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
@@ -79,6 +123,10 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		return model.appendActivity(message), nil
 	case PromptHistoryMsg:
 		return model.applyPromptHistory(message), nil
+	case receiveCompletedMsg:
+		return model.completeReceive(message)
+	case effectCompletedMsg:
+		return model.completeEffect(message)
 	case tea.KeyPressMsg:
 		return model.updateKey(message)
 	default:
@@ -95,26 +143,7 @@ func (model Model) updateKey(message tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		if !binding.Matches(key) {
 			continue
 		}
-		switch binding.Action() {
-		case agenttui.ActionQuit:
-			return model, tea.Quit
-		case agenttui.ActionCursorLeft:
-			model.editor = model.editor.Move(agenttui.MoveLeft)
-		case agenttui.ActionCursorRight:
-			model.editor = model.editor.Move(agenttui.MoveRight)
-		case agenttui.ActionCursorStart:
-			model.editor = model.editor.Move(agenttui.MoveStart)
-		case agenttui.ActionCursorEnd:
-			model.editor = model.editor.Move(agenttui.MoveEnd)
-		case agenttui.ActionHistoryPrevious:
-			model = model.moveHistory(-1)
-		case agenttui.ActionHistoryNext:
-			model = model.moveHistory(1)
-		case agenttui.ActionBackspace:
-			model.editor = model.editor.Backspace()
-			model = model.detachHistory()
-		}
-		return model, nil
+		return model.applyAction(binding.Action())
 	}
 	if key.Text() != "" {
 		if editor, insertErr := model.editor.Insert(key.Text()); insertErr == nil {
@@ -125,23 +154,63 @@ func (model Model) updateKey(message tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	return model, nil
 }
 
+func (model Model) applyAction(action agenttui.Action) (tea.Model, tea.Cmd) {
+	switch action {
+	case agenttui.ActionQuit:
+		return model, quitCommand(model.effectsCancel)
+	case agenttui.ActionSubmit:
+		return model.issuePromptIntent(agenttui.IntentSubmit)
+	case agenttui.ActionCancelActiveRun:
+		return model.issueIntent(agenttui.IntentCancelActiveRun, nil)
+	case agenttui.ActionRespond:
+		return model.issuePromptIntent(agenttui.IntentRespond)
+	case agenttui.ActionCursorLeft:
+		model.editor = model.editor.Move(agenttui.MoveLeft)
+	case agenttui.ActionCursorRight:
+		model.editor = model.editor.Move(agenttui.MoveRight)
+	case agenttui.ActionCursorStart:
+		model.editor = model.editor.Move(agenttui.MoveStart)
+	case agenttui.ActionCursorEnd:
+		model.editor = model.editor.Move(agenttui.MoveEnd)
+	case agenttui.ActionHistoryPrevious:
+		model = model.moveHistory(-1)
+	case agenttui.ActionHistoryNext:
+		model = model.moveHistory(1)
+	case agenttui.ActionBackspace:
+		model.editor = model.editor.Backspace()
+		model = model.detachHistory()
+	}
+	return model, nil
+}
+
+func quitCommand(cancel context.CancelFunc) tea.Cmd {
+	if cancel == nil {
+		return tea.Quit
+	}
+	return func() tea.Msg {
+		cancel()
+		return tea.Quit()
+	}
+}
+
 // View implements tea.Model and always requests the alternate screen.
 func (model Model) View() tea.View {
 	data, err := agenttui.NewViewData(model.workspace, model.status, model.editor, model.activity)
 	if err != nil {
 		return failureView(model.accessible)
 	}
+	if model.accessible {
+		view := tea.NewView(renderAccessible(data))
+		view.AltScreen = false
+		return view
+	}
 	frame, err := model.renderer.Render(data, model.size, model.theme)
 	if err != nil {
 		return failureView(model.accessible)
 	}
-	content := frame.Content()
-	if model.accessible {
-		content = frame.PlainContent()
-	}
-	view := tea.NewView(content)
-	view.AltScreen = !model.accessible
-	if x, y, visible := frame.Cursor(); visible && !model.accessible {
+	view := tea.NewView(frame.Content())
+	view.AltScreen = true
+	if x, y, visible := frame.Cursor(); visible {
 		view.Cursor = tea.NewCursor(x, y)
 	}
 	return view
@@ -161,6 +230,11 @@ func (model Model) Activity() []agenttui.Text { return append([]agenttui.Text(ni
 
 // Status returns the current explicit presentation status.
 func (model Model) Status() agenttui.StatusState { return model.status }
+
+// LastResult returns the most recent accepted asynchronous effect result.
+func (model Model) LastResult() (agenttui.CommandResult, bool) {
+	return model.lastResult, model.hasLastResult
+}
 
 func failureView(accessible bool) tea.View {
 	view := tea.NewView("Spice Agent TUI\n[ERROR] render unavailable")
@@ -239,38 +313,121 @@ func (model Model) detachHistory() Model {
 	return model
 }
 
-func defaultBindings() ([]agenttui.Binding, error) {
-	specifications := []struct {
-		action agenttui.Action
-		keys   []string
-		help   string
-	}{
-		{action: agenttui.ActionQuit, keys: []string{"ctrl+c"}, help: "ctrl+c quit"},
-		{action: agenttui.ActionCursorLeft, keys: []string{"left"}, help: "← move"},
-		{action: agenttui.ActionCursorRight, keys: []string{"right"}, help: "→ move"},
-		{action: agenttui.ActionCursorStart, keys: []string{"home", "ctrl+a"}, help: "home start"},
-		{action: agenttui.ActionCursorEnd, keys: []string{"end", "ctrl+e"}, help: "end finish"},
-		{action: agenttui.ActionHistoryPrevious, keys: []string{"up"}, help: "↑ history"},
-		{action: agenttui.ActionHistoryNext, keys: []string{"down"}, help: "↓ history"},
-		{action: agenttui.ActionBackspace, keys: []string{"backspace"}, help: "backspace delete"},
+func (model Model) issuePromptIntent(kind agenttui.IntentKind) (tea.Model, tea.Cmd) {
+	value := model.editor.Value()
+	if value.String() == "" {
+		return model, nil
 	}
-	result := make([]agenttui.Binding, 0, len(specifications))
-	for _, specification := range specifications {
-		keys := make([]agenttui.Key, 0, len(specification.keys))
-		for _, value := range specification.keys {
-			key, err := agenttui.NewKey(value, "")
-			if err != nil {
-				return nil, err
+	model, command := model.issueIntent(kind, []agenttui.Text{value})
+	if command == nil {
+		return model, nil
+	}
+	model.pendingPrompt = value
+	model.hasPendingPrompt = true
+	return model, command
+}
+
+func (model Model) issueIntent(kind agenttui.IntentKind, values []agenttui.Text) (Model, tea.Cmd) {
+	if model.performEffect == nil || model.operationActive || model.operationToken == math.MaxUint64 {
+		return model, nil
+	}
+	intent, err := agenttui.NewIntent(kind, values)
+	if err != nil {
+		return model, nil
+	}
+	model.operationToken++
+	model.operationActive = true
+	return model, model.performEffect(model.operationToken, intent)
+}
+
+func (model Model) completeEffect(message effectCompletedMsg) (tea.Model, tea.Cmd) {
+	if !model.operationActive || message.token != model.operationToken {
+		return model, nil
+	}
+	model.operationActive = false
+	if message.err != nil {
+		model.pendingPrompt = agenttui.Text{}
+		model.hasPendingPrompt = false
+		if status := effectErrorStatus(message.err); status.Validate() == nil {
+			model.status = status
+		}
+		return model, nil
+	}
+	if message.result.Validate() != nil {
+		model.pendingPrompt = agenttui.Text{}
+		model.hasPendingPrompt = false
+		return model, nil
+	}
+	if model.hasPendingPrompt {
+		model.promptHistory = append(model.promptHistory, model.pendingPrompt)
+		if len(model.promptHistory) > agenttui.MaximumPromptHistoryItems {
+			model.promptHistory = append([]agenttui.Text(nil), model.promptHistory[len(model.promptHistory)-agenttui.MaximumPromptHistoryItems:]...)
+		}
+		if model.editor.Value() == model.pendingPrompt {
+			model.editor = model.editor.Clear()
+			model = model.detachHistory()
+		}
+	}
+	model.pendingPrompt = agenttui.Text{}
+	model.hasPendingPrompt = false
+	model.lastResult = message.result
+	model.hasLastResult = true
+	return model, nil
+}
+
+func (model Model) completeReceive(message receiveCompletedMsg) (tea.Model, tea.Cmd) {
+	if !model.receiveArmed || message.token != model.receiveToken {
+		return model, nil
+	}
+	model.receiveArmed = false
+	if message.err != nil {
+		if status := effectErrorStatus(message.err); status.Validate() == nil {
+			model.status = status
+		}
+		return model, nil
+	}
+	switch received := message.message.(type) {
+	case SnapshotMsg:
+		model = model.applySnapshot(received)
+	case ActivityMsg:
+		model = model.appendActivity(received)
+	case PromptHistoryMsg:
+		model = model.applyPromptHistory(received)
+	default:
+		return model, nil
+	}
+	if model.receiveToken == math.MaxUint64 {
+		return model, nil
+	}
+	model.receiveToken++
+	model.receiveArmed = true
+	return model, model.receiveEffect(model.receiveToken)
+}
+
+func normalizeBindings(bindings []agenttui.KeyBinding) ([]agenttui.Binding, error) {
+	if len(bindings) == 0 {
+		return nil, errors.New("at least one key binding must be injected")
+	}
+	actions := make(map[agenttui.Action]int, len(bindings))
+	keys := make(map[string]int)
+	result := make([]agenttui.Binding, 0, len(bindings))
+	for index, source := range bindings {
+		if source == nil {
+			return nil, fmt.Errorf("key binding %d must not be nil", index)
+		}
+		binding, err := agenttui.NewBinding(source.Action(), source.Keys(), source.Help())
+		if err != nil {
+			return nil, fmt.Errorf("key binding %d: %w", index, err)
+		}
+		if previous, exists := actions[binding.Action()]; exists {
+			return nil, fmt.Errorf("key action %q collides at indexes %d and %d", binding.Action(), previous, index)
+		}
+		actions[binding.Action()] = index
+		for _, key := range binding.Keys() {
+			if previous, exists := keys[key.Stroke()]; exists {
+				return nil, fmt.Errorf("keystroke %q collides at indexes %d and %d", key.Stroke(), previous, index)
 			}
-			keys = append(keys, key)
-		}
-		help, err := agenttui.NewText(specification.help)
-		if err != nil {
-			return nil, err
-		}
-		binding, err := agenttui.NewBinding(specification.action, keys, help)
-		if err != nil {
-			return nil, err
+			keys[key.Stroke()] = index
 		}
 		result = append(result, binding)
 	}

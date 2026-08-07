@@ -35,10 +35,25 @@ pinned through its canonical `charm.land/bubbletea/v2` module path.
 Presentation state accepts validated, monotonically revisioned snapshot and
 activity messages. Stale revisions are ignored, activity is a rolling
 oldest-first-evicted window within the public item and byte bounds, and injected
-prompt history is capped at 64 entries. These messages are deliberately
-client-neutral: they perform no I/O and define no daemon, transport, reconnect
-timer, retry command, or session ownership. An adopted session may translate
-its immutable events into this boundary later.
+prompt history is capped at 64 entries. Ordered key bindings are constructor
+injected, copied into immutable bindings, and rejected deterministically when
+actions or keystrokes collide. Ctrl-C is explicit shell shutdown; submit,
+cancel-active-run, and interaction response are distinct semantic actions.
+
+The model performs no I/O in `Update`. Its internal `Effects` seam returns
+Bubble Tea commands that own blocking receives and semantic operations. Shell
+startup binds those commands to the caller-owned run context. A single receive
+is armed at a time, operation tokens reject stale completions, and submitted
+prompts enter history only after generic success. Definite failures retain the
+draft and are never retried by presentation code. With no injected effects the
+same model is a tested no-I/O fallback. These contracts do not define a client,
+daemon, transport, reconnect timer, retry policy, or session ownership; an
+adopted session may translate immutable events into this boundary later.
+
+Accessible presentation is a semantic line stream rather than a styled,
+fixed-size canvas. It never requests the alternate screen or cursor, never
+contains ANSI sequences, and does not change merely because the terminal is
+resized. The normal renderer retains exact fixed-cell light/dark output.
 
 `annotation/ui` is the only public descendant annotation package and is the
 module's named `annotations` interface. Each annotation has one canonical file
@@ -55,6 +70,13 @@ canonicalizing to the public contract. Defined wrappers, anonymous interfaces,
 concrete results, malformed metadata, and unsupported cleanup/error layouts are
 rejected. The handler never parses `Declaration.TypeID`, performs assignability,
 or adds TUI-specific behavior to the compiler.
+
+Public terminal startup values contain explicit caller-owned input/output,
+accessibility selection, exact server-owned definition ID and revision, and a
+bounded shutdown timeout. They perform no discovery or acquisition. Public
+commands receive only a bounded immutable invocation and return a bounded typed
+result/intent; services remain constructor dependencies and command IDs are
+validated for deterministic collisions.
 
 `internal/application` owns terminal-product composition and the lifecycle of
 the injected client session. Neither package may import the agent kernel,

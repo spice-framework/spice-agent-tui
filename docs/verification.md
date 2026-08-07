@@ -25,7 +25,9 @@ not an older `go` that may appear first on `PATH`.
   Presentation acceptance includes fixed light/dark goldens at normal, compact
   Unicode, and 1x1 boundary sizes; exact row/column and cursor-cell assertions;
   revision/stale-update, rolling-bound, history-navigation, resize-sequence,
-  accessible-mode, concurrent-render, Ctrl-C, and cancellation tests.
+  accessible-mode and resize-stability, injected-binding collision, semantic
+  action, command/effect ownership, stale-operation, prompt-commit,
+  concurrent-render, Ctrl-C, and blocked-receive cancellation tests.
 
 The repository-owned verifier is cross-platform. `make fast`, `make check`, and
 `make verify` force `GOPROXY=off`; missing cache entries fail instead of causing

@@ -83,6 +83,38 @@ func semanticBody(data agenttui.ViewData, palette agenttui.Palette) []string {
 	return result
 }
 
+// renderAccessible emits a stable semantic transcript rather than a padded
+// terminal canvas. It contains no styling, cursor control, or size-dependent
+// whitespace, so a resize does not replay an otherwise unchanged canvas.
+func renderAccessible(data agenttui.ViewData) string {
+	lines := []string{data.Workspace().Title().String()}
+	for _, section := range data.Workspace().Sections() {
+		lines = append(lines, section.Title().String()+":")
+		for _, line := range splitSemanticLines(section.Body().String()) {
+			lines = append(lines, "  "+line)
+		}
+	}
+	if activity := data.Activity(); len(activity) > 0 {
+		lines = append(lines, "Activity:")
+		for _, item := range activity {
+			for _, line := range splitSemanticLines(item.String()) {
+				lines = append(lines, "- "+line)
+			}
+		}
+	}
+	lines = append(lines, "Prompt: "+data.Prompt().Value().String())
+	status := data.Status()
+	lines = append(lines, "["+strings.ToUpper(string(status.Level()))+"] "+status.Message().String())
+	if hints := status.Hints(); len(hints) > 0 {
+		values := make([]string, len(hints))
+		for index, hint := range hints {
+			values[index] = hint.String()
+		}
+		lines = append(lines, "Keys: "+strings.Join(values, "; "))
+	}
+	return strings.Join(lines, "\n")
+}
+
 func splitSemanticLines(value string) []string {
 	value = strings.ReplaceAll(value, "\t", "    ")
 	return strings.Split(value, "\n")

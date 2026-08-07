@@ -151,8 +151,15 @@ func nextGraphemeBoundary(value string, desired int) int {
 type Action string
 
 const (
-	// ActionQuit requests normal shell termination.
+	// ActionQuit explicitly requests normal shell termination.
 	ActionQuit Action = "quit"
+	// ActionSubmit requests submission of the current prompt.
+	ActionSubmit Action = "submit"
+	// ActionCancelActiveRun requests cancellation of the current run without
+	// terminating the terminal application.
+	ActionCancelActiveRun Action = "cancel-active-run"
+	// ActionRespond submits the current prompt to a pending interaction.
+	ActionRespond Action = "respond"
 	// ActionCursorLeft moves the prompt cursor left.
 	ActionCursorLeft Action = "cursor-left"
 	// ActionCursorRight moves the prompt cursor right.
@@ -170,7 +177,8 @@ const (
 )
 
 func validAction(action Action) bool {
-	return action == ActionQuit || action == ActionCursorLeft || action == ActionCursorRight ||
+	return action == ActionQuit || action == ActionSubmit || action == ActionCancelActiveRun ||
+		action == ActionRespond || action == ActionCursorLeft || action == ActionCursorRight ||
 		action == ActionCursorStart || action == ActionCursorEnd || action == ActionHistoryPrevious ||
 		action == ActionHistoryNext || action == ActionBackspace
 }
@@ -207,6 +215,50 @@ type Binding struct {
 	action Action
 	keys   []Key
 	help   Text
+}
+
+// StandardKeyBindings constructs the default ordered bindings for a terminal
+// application composition root. The presentation model never selects these
+// implicitly; applications may inject a different complete set.
+func StandardKeyBindings() ([]KeyBinding, error) {
+	specifications := []struct {
+		action Action
+		keys   []string
+		help   string
+	}{
+		{action: ActionSubmit, keys: []string{"enter"}, help: "enter submit"},
+		{action: ActionCancelActiveRun, keys: []string{"esc", "ctrl+x"}, help: "esc cancel run"},
+		{action: ActionRespond, keys: []string{"alt+enter"}, help: "alt+enter respond"},
+		{action: ActionQuit, keys: []string{"ctrl+c", "ctrl+q"}, help: "ctrl+c quit"},
+		{action: ActionCursorLeft, keys: []string{"left"}, help: "← move"},
+		{action: ActionCursorRight, keys: []string{"right"}, help: "→ move"},
+		{action: ActionCursorStart, keys: []string{"home", "ctrl+a"}, help: "home start"},
+		{action: ActionCursorEnd, keys: []string{"end", "ctrl+e"}, help: "end finish"},
+		{action: ActionHistoryPrevious, keys: []string{"up"}, help: "↑ history"},
+		{action: ActionHistoryNext, keys: []string{"down"}, help: "↓ history"},
+		{action: ActionBackspace, keys: []string{"backspace"}, help: "backspace delete"},
+	}
+	result := make([]KeyBinding, 0, len(specifications))
+	for _, specification := range specifications {
+		keys := make([]Key, 0, len(specification.keys))
+		for _, value := range specification.keys {
+			key, err := NewKey(value, "")
+			if err != nil {
+				return nil, err
+			}
+			keys = append(keys, key)
+		}
+		help, err := NewText(specification.help)
+		if err != nil {
+			return nil, err
+		}
+		binding, err := NewBinding(specification.action, keys, help)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, binding)
+	}
+	return result, nil
 }
 
 // NewBinding constructs a semantic key binding.

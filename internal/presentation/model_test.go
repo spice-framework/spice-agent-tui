@@ -65,7 +65,7 @@ func TestModelResizeSequencePreservesStreamingAndEditorState(t *testing.T) {
 	}
 }
 
-func TestModelQuitUnknownAndInvalidInput(t *testing.T) {
+func TestModelExplicitQuitUnknownAndInvalidInput(t *testing.T) {
 	t.Parallel()
 	model := fixtureModel(t, FixedRenderer{})
 	updated, command := model.Update(tea.KeyPressMsg(tea.Key{Code: 'c', Mod: tea.ModCtrl}))
@@ -89,10 +89,10 @@ func TestModelQuitUnknownAndInvalidInput(t *testing.T) {
 func TestModelConstructionAndRenderFailure(t *testing.T) {
 	t.Parallel()
 	view := fixtureView(t)
-	if _, err := NewModel(nil, view.Workspace(), view.Status(), view.Prompt(), view.Activity(), agenttui.DarkTheme()); err == nil {
+	if _, err := NewModel(nil, view.Workspace(), view.Status(), view.Prompt(), view.Activity(), agenttui.DarkTheme(), standardBindings(t), nil); err == nil {
 		t.Fatal("NewModel(nil renderer) error = nil")
 	}
-	if _, err := NewModel(FixedRenderer{}, view.Workspace(), view.Status(), view.Prompt(), view.Activity(), agenttui.ThemeState{}); err == nil {
+	if _, err := NewModel(FixedRenderer{}, view.Workspace(), view.Status(), view.Prompt(), view.Activity(), agenttui.ThemeState{}, standardBindings(t), nil); err == nil {
 		t.Fatal("NewModel(zero theme) error = nil")
 	}
 	model := fixtureModel(t, failingRenderer{})
@@ -100,7 +100,8 @@ func TestModelConstructionAndRenderFailure(t *testing.T) {
 		t.Fatalf("failure View() = %#v", got)
 	}
 	accessible := model.WithAccessibleMode(true).View()
-	if accessible.AltScreen || accessible.Cursor != nil || !strings.Contains(accessible.Content, "[ERROR]") {
+	if accessible.AltScreen || accessible.Cursor != nil || strings.Contains(accessible.Content, "\x1b") ||
+		!strings.Contains(accessible.Content, "[DISCONNECTED]") {
 		t.Fatalf("accessible failure View() = %#v", accessible)
 	}
 }
@@ -181,10 +182,39 @@ func TestModelAccessibleViewIsPlainAndStatusExplicit(t *testing.T) {
 	}
 }
 
+func TestAccessibleViewIsLineOrientedAndResizeStable(t *testing.T) {
+	t.Parallel()
+	model := fixtureModel(t, FixedRenderer{}).WithAccessibleMode(true)
+	before := model.View()
+	model = updateMessage(t, model, tea.WindowSizeMsg{Width: 1, Height: 1})
+	after := model.View()
+	if before.Content != after.Content || strings.HasSuffix(after.Content, " ") ||
+		strings.Count(after.Content, "\n") >= agenttui.MaximumHeight {
+		t.Fatalf("accessible resize replayed a canvas\nbefore=%q\nafter=%q", before.Content, after.Content)
+	}
+}
+
+func TestModelRejectsDuplicateInjectedBindings(t *testing.T) {
+	t.Parallel()
+	view := fixtureView(t)
+	key := mustKey(t, "enter")
+	first := mustBinding(t, agenttui.ActionSubmit, []agenttui.Key{key})
+	sameAction := mustBinding(t, agenttui.ActionSubmit, []agenttui.Key{mustKey(t, "ctrl+enter")})
+	sameKey := mustBinding(t, agenttui.ActionRespond, []agenttui.Key{key})
+	for _, bindings := range [][]agenttui.KeyBinding{{first, sameAction}, {first, sameKey}, nil} {
+		if _, err := NewModel(
+			FixedRenderer{}, view.Workspace(), view.Status(), view.Prompt(), view.Activity(),
+			agenttui.DarkTheme(), bindings, nil,
+		); err == nil {
+			t.Fatalf("NewModel(%d bindings) error = nil", len(bindings))
+		}
+	}
+}
+
 func fixtureModel(t *testing.T, renderer agenttui.Renderer) Model {
 	t.Helper()
 	view := fixtureView(t)
-	model, err := NewModel(renderer, view.Workspace(), view.Status(), view.Prompt(), view.Activity(), agenttui.DarkTheme())
+	model, err := NewModel(renderer, view.Workspace(), view.Status(), view.Prompt(), view.Activity(), agenttui.DarkTheme(), standardBindings(t), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,6 +222,33 @@ func fixtureModel(t *testing.T, renderer agenttui.Renderer) Model {
 		t.Fatal("Init() command != nil")
 	}
 	return model
+}
+
+func standardBindings(t *testing.T) []agenttui.KeyBinding {
+	t.Helper()
+	bindings, err := agenttui.StandardKeyBindings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return bindings
+}
+
+func mustKey(t *testing.T, stroke string) agenttui.Key {
+	t.Helper()
+	key, err := agenttui.NewKey(stroke, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return key
+}
+
+func mustBinding(t *testing.T, action agenttui.Action, keys []agenttui.Key) agenttui.Binding {
+	t.Helper()
+	binding, err := agenttui.NewBinding(action, keys, mustText(t, string(action)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return binding
 }
 
 func updateKey(t *testing.T, model Model, key tea.Key) Model {

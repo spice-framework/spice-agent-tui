@@ -18,7 +18,7 @@ type Renderer interface {
 type Command interface {
 	ID() string
 	Summary() Text
-	Execute(context.Context) error
+	Execute(context.Context, Invocation) (CommandResult, error)
 }
 
 // PromptEditor is an immutable prompt editing contract.
