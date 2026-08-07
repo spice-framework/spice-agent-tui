@@ -1,5 +1,7 @@
 # Spice Agent TUI
 
+Unified documentation: [spiceframework.dev/agent/interfaces/tui](https://spiceframework.dev/agent/interfaces/tui/).
+
 This repository owns the terminal experience for Spice Agent. Its public API is
 UI-neutral; Bubble Tea v2 is confined to `internal/presentation` and is reached
 through the `terminal` facade.
