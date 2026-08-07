@@ -33,6 +33,7 @@ not an older `go` that may appear first on `PATH`.
   concurrent-render, Ctrl-C, blocked-receive cancellation, Session panic,
   one-shot operation, late-cancellation result precedence, concurrent Session
   lanes, cancel control-lane availability, tagged-update, facade, Theme snapshot,
+  public-facade prompt/submit/cancel/Ctrl-Q terminal interaction,
   exact auto-configuration order, and external generated-shell normal-exit tests.
 
 The repository-owned verifier is cross-platform. `make fast`, `make check`, and
