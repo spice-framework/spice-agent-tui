@@ -170,7 +170,31 @@ func checkIdentity(root string) error {
 	if err := validateCompatibility(compatibilityContent); err != nil {
 		return err
 	}
-	return validateToolPins(filepath.Join(root, "tools", "go.mod"))
+	if err := validateToolPins(filepath.Join(root, "tools", "go.mod")); err != nil {
+		return err
+	}
+	return checkRepositoryPortability(root)
+}
+
+func checkRepositoryPortability(root string) error {
+	attributes, err := os.ReadFile(filepath.Join(root, ".gitattributes")) // #nosec G304 -- repository-owned path.
+	if err != nil {
+		return fmt.Errorf("read .gitattributes: %w", err)
+	}
+	if string(attributes) != "* text=auto eol=lf\n*.pb -text\n*.png -text\n" {
+		return errors.New(".gitattributes must enforce LF text and preserve binary protocol/image files")
+	}
+	workflow, err := os.ReadFile(filepath.Join(root, ".github", "workflows", "ci.yml")) // #nosec G304 -- repository-owned path.
+	if err != nil {
+		return fmt.Errorf("read CI workflow: %w", err)
+	}
+	text := strings.ReplaceAll(string(workflow), "\r\n", "\n")
+	bootstrap := strings.Index(text, "go run ./internal/qualitygate -mode=tools-bootstrap")
+	verify := strings.Index(text, "go run ./internal/qualitygate -mode=verify")
+	if bootstrap < 0 || verify <= bootstrap {
+		return errors.New("CI quality jobs must bootstrap pinned tools before offline verification")
+	}
+	return nil
 }
 
 type compatibility struct {

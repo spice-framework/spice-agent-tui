@@ -24,6 +24,26 @@ func TestNetworkAllowedOnlyForBootstrap(t *testing.T) {
 	}
 }
 
+func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	writeFile(t, root, ".gitattributes", "* text=auto eol=lf\n*.pb -text\n*.png -text\n")
+	writeFile(t, root, ".github/workflows/ci.yml", `steps:
+  - run: go run ./internal/qualitygate -mode=tools-bootstrap
+  - run: go run ./internal/qualitygate -mode=verify
+`)
+	if err := checkRepositoryPortability(root); err != nil {
+		t.Fatal(err)
+	}
+
+	writeFile(t, root, ".github/workflows/ci.yml", `steps:
+  - run: go run ./internal/qualitygate -mode=verify
+`)
+	if err := checkRepositoryPortability(root); err == nil || !strings.Contains(err.Error(), "bootstrap") {
+		t.Fatalf("missing bootstrap error = %v", err)
+	}
+}
+
 func TestExactGoExecutable(t *testing.T) {
 	t.Parallel()
 	if goExecutableName("windows") != "go.exe" || goExecutableName("linux") != "go" {
@@ -206,6 +226,11 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	validMod := validIdentityGoMod()
 	writeFile(t, root, "go.mod", validMod)
 	writeFile(t, root, "compatibility.json", validCompatibilityJSON())
+	writeFile(t, root, ".gitattributes", "* text=auto eol=lf\n*.pb -text\n*.png -text\n")
+	writeFile(t, root, ".github/workflows/ci.yml", `steps:
+  - run: go run ./internal/qualitygate -mode=tools-bootstrap
+  - run: go run ./internal/qualitygate -mode=verify
+`)
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
 		"github.com/golangci/golangci-lint/v2 v2.12.2",
 		"github.com/securego/gosec/v2 v2.28.0",
