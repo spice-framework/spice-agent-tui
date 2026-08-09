@@ -52,3 +52,7 @@ before product tests run.
 The repository-owned verifier is cross-platform. `make fast`, `make check`, and
 `make verify` force `GOPROXY=off`; missing cache entries fail instead of causing
 hidden downloads. `make fmt` is the only target that rewrites Go source.
+
+See [Runtime benchmarks](benchmarks.md) for the deterministic, offline,
+threshold-free session and presentation baselines that supplement these
+correctness gates.
