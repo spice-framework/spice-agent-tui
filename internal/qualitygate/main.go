@@ -23,16 +23,17 @@ import (
 )
 
 const (
-	requiredGoVersion  = "go1.26.5"
-	modulePath         = "github.com/spice-framework/spice-agent-tui"
-	annotationTool     = modulePath + "/cmd/spice-agent-tui-annotations"
-	coreModule         = "github.com/spice-framework/spice"
-	coreVersion        = "v0.1.0-preview.1.0.20260806200749-524424a04df0"
-	toolchainModule    = "github.com/spice-framework/toolchain"
-	toolchainVersion   = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
-	spiceTool          = toolchainModule + "/cmd/spice"
-	coreAnnotationTool = toolchainModule + "/cmd/spice-annotation-core"
-	minimumCoverage    = 85.0
+	requiredGoVersion     = "go1.26.5"
+	modulePath            = "github.com/spice-framework/spice-agent-tui"
+	annotationTool        = modulePath + "/cmd/spice-agent-tui-annotations"
+	coreModule            = "github.com/spice-framework/spice"
+	coreVersion           = "v0.1.0-preview.1.0.20260806200749-524424a04df0"
+	toolchainModule       = "github.com/spice-framework/toolchain"
+	toolchainVersion      = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
+	spiceTool             = toolchainModule + "/cmd/spice"
+	coreAnnotationTool    = toolchainModule + "/cmd/spice-annotation-core"
+	minimumCoverage       = 85.0
+	releaseWorkflowCommit = "26de6f4b78a64eedb21e15a2ffe8aa3fd579ef16"
 )
 
 var output io.Writer = os.Stdout
@@ -173,7 +174,123 @@ func checkIdentity(root string) error {
 	if err := validateToolPins(filepath.Join(root, "tools", "go.mod")); err != nil {
 		return err
 	}
-	return checkRepositoryPortability(root)
+	if err := checkRepositoryPortability(root); err != nil {
+		return err
+	}
+	return checkReleaseWorkflow(root)
+}
+
+func checkReleaseWorkflow(root string) error {
+	content, err := os.ReadFile(filepath.Join(root, ".github", "workflows", "release.yml")) // #nosec G304 -- repository-owned path.
+	if err != nil {
+		return fmt.Errorf("read release workflow: %w", err)
+	}
+	text := strings.ReplaceAll(string(content), "\r\n", "\n")
+	for _, required := range []string{
+		"permissions: {}",
+		"contents: write",
+		"id-token: write",
+		"attestations: write",
+		"artifact-metadata: write",
+		"uses: spice-framework/.github/.github/workflows/go-module-release.yml@" + releaseWorkflowCommit,
+		"module: " + modulePath,
+		"workflow_commit: " + releaseWorkflowCommit,
+	} {
+		if strings.Count(text, required) != 1 {
+			return fmt.Errorf("release workflow must contain exactly one %q", required)
+		}
+	}
+	for _, forbidden := range []string{
+		"library-release.yml",
+		"secrets:",
+		"secrets: inherit",
+		"SPICE_LIBRARY_RELEASE_SIGNING_KEY",
+		"steps:",
+	} {
+		if strings.Contains(text, forbidden) {
+			return fmt.Errorf("release workflow contains forbidden %q", forbidden)
+		}
+	}
+	if err := checkReleasePermissionCeiling(text); err != nil {
+		return err
+	}
+	return checkSingleReleaseJob(text)
+}
+
+func checkReleasePermissionCeiling(workflow string) error {
+	lines := strings.Split(workflow, "\n")
+	permissionStart := -1
+	permissionBlocks := 0
+	for index, line := range lines {
+		if strings.HasPrefix(strings.TrimSpace(line), "permissions:") {
+			permissionBlocks++
+		}
+		if line == "    permissions:" {
+			if permissionStart >= 0 {
+				return errors.New("release workflow must contain one job permission block")
+			}
+			permissionStart = index + 1
+		}
+	}
+	if permissionBlocks != 2 {
+		return fmt.Errorf("release workflow must contain exactly two permission blocks, got %d", permissionBlocks)
+	}
+	if permissionStart < 0 {
+		return errors.New("release workflow is missing the job permission block")
+	}
+	want := map[string]bool{
+		"      contents: write":          false,
+		"      id-token: write":          false,
+		"      attestations: write":      false,
+		"      artifact-metadata: write": false,
+	}
+	for _, line := range lines[permissionStart:] {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if !strings.HasPrefix(line, "      ") {
+			break
+		}
+		if _, allowed := want[line]; !allowed {
+			return fmt.Errorf("release workflow exceeds the permission ceiling with %q", strings.TrimSpace(line))
+		}
+		if want[line] {
+			return fmt.Errorf("release workflow repeats permission %q", strings.TrimSpace(line))
+		}
+		want[line] = true
+	}
+	for permission, found := range want {
+		if !found {
+			return fmt.Errorf("release workflow is missing permission %q", strings.TrimSpace(permission))
+		}
+	}
+	return nil
+}
+
+func checkSingleReleaseJob(workflow string) error {
+	lines := strings.Split(workflow, "\n")
+	inJobs := false
+	jobs := make([]string, 0, 1)
+	for _, line := range lines {
+		if line == "jobs:" {
+			inJobs = true
+			continue
+		}
+		if !inJobs || strings.TrimSpace(line) == "" || strings.HasPrefix(line, "    ") {
+			continue
+		}
+		if strings.HasPrefix(line, "  ") && strings.HasSuffix(line, ":") {
+			jobs = append(jobs, strings.TrimSuffix(strings.TrimSpace(line), ":"))
+			continue
+		}
+		if !strings.HasPrefix(line, " ") {
+			break
+		}
+	}
+	if !slices.Equal(jobs, []string{"release"}) {
+		return fmt.Errorf("release workflow must contain only the release job, got %q", jobs)
+	}
+	return nil
 }
 
 func checkRepositoryPortability(root string) error {

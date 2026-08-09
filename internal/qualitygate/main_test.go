@@ -44,6 +44,100 @@ func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
 	}
 }
 
+func TestReleaseWorkflowRequiresExactKeylessBoundary(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		workflow string
+		wantErr  string
+		omit     bool
+	}{
+		{name: "valid", workflow: validReleaseWorkflow()},
+		{name: "missing", wantErr: "read release workflow", omit: true},
+		{
+			name:     "wrong reusable pin",
+			workflow: strings.Replace(validReleaseWorkflow(), releaseWorkflowCommit, strings.Repeat("0", 40), 1),
+			wantErr:  "uses:",
+		},
+		{
+			name: "wrong attested workflow pin",
+			workflow: strings.Replace(
+				validReleaseWorkflow(),
+				"workflow_commit: "+releaseWorkflowCommit,
+				"workflow_commit: "+strings.Repeat("0", 40),
+				1,
+			),
+			wantErr: "workflow_commit:",
+		},
+		{
+			name:     "wrong module",
+			workflow: strings.Replace(validReleaseWorkflow(), modulePath, "example.com/wrong", 1),
+			wantErr:  "module:",
+		},
+		{
+			name:     "legacy workflow",
+			workflow: strings.Replace(validReleaseWorkflow(), "go-module-release.yml", "library-release.yml", 1),
+			wantErr:  "go-module-release.yml",
+		},
+		{
+			name:     "inherited secrets",
+			workflow: validReleaseWorkflow() + "    secrets: inherit\n",
+			wantErr:  "secrets:",
+		},
+		{
+			name:     "named signing secret",
+			workflow: validReleaseWorkflow() + "    secrets:\n      SPICE_LIBRARY_RELEASE_SIGNING_KEY: value\n",
+			wantErr:  "secrets:",
+		},
+		{
+			name: "extra permission",
+			workflow: strings.Replace(
+				validReleaseWorkflow(),
+				"      contents: write\n",
+				"      contents: write\n      packages: write\n",
+				1,
+			),
+			wantErr: "permission ceiling",
+		},
+		{
+			name:     "missing permission",
+			workflow: strings.Replace(validReleaseWorkflow(), "      attestations: write\n", "", 1),
+			wantErr:  "attestations: write",
+		},
+		{
+			name:     "extra permission block",
+			workflow: validReleaseWorkflow() + "permissions: read-all\n",
+			wantErr:  "permission blocks",
+		},
+		{
+			name:     "extra job",
+			workflow: validReleaseWorkflow() + "  publish-again:\n    uses: example.invalid/workflow.yml@deadbeef\n",
+			wantErr:  "only the release job",
+		},
+		{
+			name:     "local steps",
+			workflow: validReleaseWorkflow() + "    steps:\n      - run: echo unsafe\n",
+			wantErr:  "steps:",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			root := t.TempDir()
+			if !test.omit {
+				writeFile(t, root, ".github/workflows/release.yml", test.workflow)
+			}
+			err := checkReleaseWorkflow(root)
+			if test.wantErr == "" && err != nil {
+				t.Fatal(err)
+			}
+			if test.wantErr != "" && (err == nil || !strings.Contains(err.Error(), test.wantErr)) {
+				t.Fatalf("checkReleaseWorkflow() error = %v, want containing %q", err, test.wantErr)
+			}
+		})
+	}
+}
+
 func TestExactGoExecutable(t *testing.T) {
 	t.Parallel()
 	if goExecutableName("windows") != "go.exe" || goExecutableName("linux") != "go" {
@@ -231,6 +325,7 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
   - run: go run ./internal/qualitygate -mode=tools-bootstrap
   - run: go run ./internal/qualitygate -mode=verify
 `)
+	writeFile(t, root, ".github/workflows/release.yml", validReleaseWorkflow())
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
 		"github.com/golangci/golangci-lint/v2 v2.12.2",
 		"github.com/securego/gosec/v2 v2.28.0",
@@ -274,6 +369,31 @@ func validIdentityGoMod() string {
 		"require (\n\tcharm.land/bubbletea/v2 v2.0.8\n" +
 		"\tgithub.com/charmbracelet/x/ansi v0.11.7\n\t" + coreModule + " " + coreVersion + "\n)\n\n" +
 		"require " + toolchainModule + " " + toolchainVersion + " // indirect\n"
+}
+
+func validReleaseWorkflow() string {
+	return `name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+
+permissions: {}
+
+jobs:
+  release:
+    name: Keylessly attest and publish
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: spice-framework/.github/.github/workflows/go-module-release.yml@` + releaseWorkflowCommit + `
+    with:
+      module: ` + modulePath + `
+      workflow_commit: ` + releaseWorkflowCommit + `
+`
 }
 
 func TestGoFilesAndTreeDigests(t *testing.T) {
