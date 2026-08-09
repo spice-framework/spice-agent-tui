@@ -41,11 +41,13 @@ not an older `go` that may appear first on `PATH`.
 
 Repository identity also validates `.github/workflows/release.yml` as a
 single-job, secret-free caller of the organization keyless Go-module release
-workflow at its exact audited commit. The caller must deny permissions at the
-workflow level and may grant only `contents`, `id-token`, `attestations`, and
-`artifact-metadata` writes to the reusable release job. Extra permissions,
-local steps, additional jobs, legacy workflows, module drift, and either named
-or inherited secrets fail every verification mode before product tests run.
+workflow at exact audited commit
+`0fcd43dc8b41fad56c231d0e136ad8c762276ed5`. The caller must deny permissions
+at the workflow level and may grant only `contents`, `id-token`,
+`attestations`, and `artifact-metadata` writes to the reusable release job.
+Extra permissions, local steps, additional jobs, legacy workflows, module
+drift, and either named or inherited secrets fail every verification mode
+before product tests run.
 
 The repository-owned verifier is cross-platform. `make fast`, `make check`, and
 `make verify` force `GOPROXY=off`; missing cache entries fail instead of causing

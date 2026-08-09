@@ -46,6 +46,7 @@ func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
 
 func TestReleaseWorkflowRequiresExactKeylessBoundary(t *testing.T) {
 	t.Parallel()
+	const immediatePriorWorkflowCommit = "07f898b85e7d1c409b91bf280e47d62921e786b6"
 	tests := []struct {
 		name     string
 		workflow string
@@ -54,6 +55,11 @@ func TestReleaseWorkflowRequiresExactKeylessBoundary(t *testing.T) {
 	}{
 		{name: "valid", workflow: validReleaseWorkflow()},
 		{name: "missing", wantErr: "read release workflow", omit: true},
+		{
+			name:     "immediate prior authority",
+			workflow: strings.ReplaceAll(validReleaseWorkflow(), releaseWorkflowCommit, immediatePriorWorkflowCommit),
+			wantErr:  "uses:",
+		},
 		{
 			name:     "wrong reusable pin",
 			workflow: strings.Replace(validReleaseWorkflow(), releaseWorkflowCommit, strings.Repeat("0", 40), 1),

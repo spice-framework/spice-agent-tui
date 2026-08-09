@@ -134,7 +134,8 @@ verify` before a commit. Ordinary verification is offline.
 `spice-release.json` is inert, canonical metadata for the centrally authorized
 `go-module-v1` release profile. `make verify-release` runs the repository's
 complete local gate. Tag pushes call the organization-owned keyless Go-module
-release workflow at the exact audited commit recorded in the repository. The
+release workflow at audited commit
+`0fcd43dc8b41fad56c231d0e136ad8c762276ed5`. The
 caller denies permissions by default, grants only contents, OIDC, attestations,
 and artifact-metadata writes to that reusable job, and passes no secrets. The
 repository quality gate rejects pin drift, excess permissions, local release
