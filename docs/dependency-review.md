@@ -2,11 +2,12 @@
 
 ## Product graph
 
-### Spice core v0.1.0-preview.1.0.20260806200749-524424a04df0
+### Spice core v0.1.0-preview.2
 
 `github.com/spice-framework/spice` is pinned exactly at
-v0.1.0-preview.1.0.20260806200749-524424a04df0 and is
-Apache-2.0 licensed. This module uses its public annotation SDK v1alpha2,
+v0.1.0-preview.2 and is Apache-2.0 licensed. This immutable public preview
+replaces the development pseudo-version and is governed by Spice's protected
+keyless release contract. This module uses its public annotation SDK v1alpha2,
 framed protocol server, starter manifest, lifecycle provider contract metadata,
 and Modulith declaration annotations. It does not import Spice compiler,
 toolchain, CLI, generated transport, or internal packages.
@@ -17,9 +18,10 @@ named origin to validate exact interfaces while retaining alias support. The std
 server receives caller-owned streams and cancellation and performs no network,
 filesystem, logging, telemetry, discovery, or background update work.
 
-The dependency is pre-1.0 and therefore intentionally exact. Upgrading requires
-descriptor decode, protocol framing, starter compatibility, contribution wire,
-vendor-offline, and full generated-compiler compatibility review.
+The dependency remains pre-1.0 and therefore intentionally exact. Upgrading
+requires descriptor decode, protocol framing, starter compatibility,
+contribution wire, vendor-offline, and full generated-compiler compatibility
+review.
 
 ### Spice toolchain v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6
 

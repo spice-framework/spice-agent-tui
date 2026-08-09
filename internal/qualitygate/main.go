@@ -27,7 +27,7 @@ const (
 	modulePath            = "github.com/spice-framework/spice-agent-tui"
 	annotationTool        = modulePath + "/cmd/spice-agent-tui-annotations"
 	coreModule            = "github.com/spice-framework/spice"
-	coreVersion           = "v0.1.0-preview.1.0.20260806200749-524424a04df0"
+	coreVersion           = "v0.1.0-preview.2"
 	toolchainModule       = "github.com/spice-framework/toolchain"
 	toolchainVersion      = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
 	spiceTool             = toolchainModule + "/cmd/spice"

@@ -14,7 +14,7 @@ require (
 	charm.land/bubbletea/v2 v2.0.8
 	github.com/charmbracelet/x/ansi v0.11.7
 	github.com/rivo/uniseg v0.4.7
-	github.com/spice-framework/spice v0.1.0-preview.1.0.20260806200749-524424a04df0
+	github.com/spice-framework/spice v0.1.0-preview.2
 )
 
 require (
