@@ -33,7 +33,7 @@ const (
 	spiceTool             = toolchainModule + "/cmd/spice"
 	coreAnnotationTool    = toolchainModule + "/cmd/spice-annotation-core"
 	minimumCoverage       = 85.0
-	releaseWorkflowCommit = "26de6f4b78a64eedb21e15a2ffe8aa3fd579ef16"
+	releaseWorkflowCommit = "c4df74b2c60640c60fe0fa3fe641dadafbc4148a"
 )
 
 var output io.Writer = os.Stdout
