@@ -50,6 +50,9 @@ manifest, and catalog work above can be proved by executable product code.
       grapheme-safe editing and cursor placement, deterministic resize,
       revisioned snapshot/activity updates, bounded prompt history, keyboard
       navigation, multi-size light/dark goldens, and clean Ctrl-C cancellation.
+- [x] Ship an agent-friendly `tuittest` harness for scripted interaction,
+      Session injection, accessible/normal captures, and pixel-perfect
+      styled/plain golden comparison without a PTY or daemon.
 - [x] Prepare adapter-neutral Phase 4 contracts: injected ordered key bindings,
       semantic submit/cancel/respond/quit actions, bounded command and terminal
       values, command-owned effects with stale-token protection, caller-context

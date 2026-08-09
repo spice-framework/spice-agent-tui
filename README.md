@@ -22,8 +22,10 @@ The implemented slice includes:
   prompt submission, concurrent run cancellation, and clean Ctrl-Q shutdown;
 - public `terminal.NewFixedRenderer` and `terminal.NewShell` factories whose
   signatures expose no Bubble Tea or internal types;
-- canonical `@UIShell` and `@UIRenderer` provider annotations; and
-- explicit `/autoconfigure` fallback beans proven by committed generated Go.
+- canonical `@UIShell` and `@UIRenderer` provider annotations;
+- explicit `/autoconfigure` fallback beans proven by committed generated Go; and
+- an agent-friendly `tuittest` harness for scripted interaction and pixel-perfect
+  goldens (see [`docs/tuittest.md`](docs/tuittest.md)).
 
 ## Session boundary
 

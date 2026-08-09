@@ -34,6 +34,9 @@ not an older `go` that may appear first on `PATH`.
   one-shot operation, late-cancellation result precedence, concurrent Session
   lanes, cancel control-lane availability, tagged-update, facade, Theme snapshot,
   public-facade prompt/submit/cancel/Ctrl-Q terminal interaction,
+  deterministic `tuittest` scripts, grapheme input, injected key maps, command
+  timeout cancellation, exact styled/plain/report goldens, missing-fixture
+  refusal, and ScriptSession queue/close behavior,
   exact auto-configuration order, and external generated-shell normal-exit tests.
 
 The repository-owned verifier is cross-platform. `make fast`, `make check`, and

@@ -1,0 +1,28 @@
+name: petclinic-disconnected
+size: 48x10
+cursor: x=7 y=8 visible=true
+alt_screen: false accessible: false revision: 0
+status: [] 
+prompt: ""
+plain:
+PetClinic                                       
+Summary: 2 owners                               
+  1 pet                                         
+Activity                                        
+• visit scheduled                               
+                                                
+                                                
+                                                
+> owner                                         
+[DISCONNECTED] session unavailable  ctrl+c quit 
+styled:
+<ESC>[38;2;56;189;248m<ESC>[1mPetClinic<ESC>[0m
+<ESC>[38;2;226;232;240m<ESC>[1mSummary: <ESC>[0m<ESC>[38;2;226;232;240m2 owners<ESC>[0m
+<ESC>[38;2;226;232;240m  1 pet<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1mActivity<ESC>[0m
+<ESC>[38;2;226;232;240m• visit scheduled<ESC>[0m
+
+
+
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240mowner<ESC>[0m
+<ESC>[38;2;250;204;21m<ESC>[1m[DISCONNECTED] session unavailable<ESC>[0m<ESC>[38;2;148;163;184m  ctrl+c quit<ESC>[0m
