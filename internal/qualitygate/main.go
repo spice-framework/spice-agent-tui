@@ -23,17 +23,18 @@ import (
 )
 
 const (
-	requiredGoVersion     = "go1.26.5"
-	modulePath            = "github.com/spice-framework/spice-agent-tui"
-	annotationTool        = modulePath + "/cmd/spice-agent-tui-annotations"
-	coreModule            = "github.com/spice-framework/spice"
-	coreVersion           = "v0.1.0-preview.2"
-	toolchainModule       = "github.com/spice-framework/toolchain"
-	toolchainVersion      = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
-	spiceTool             = toolchainModule + "/cmd/spice"
-	coreAnnotationTool    = toolchainModule + "/cmd/spice-annotation-core"
-	minimumCoverage       = 85.0
-	releaseWorkflowCommit = "0fcd43dc8b41fad56c231d0e136ad8c762276ed5"
+	requiredGoVersion            = "go1.26.5"
+	modulePath                   = "github.com/spice-framework/spice-agent-tui"
+	annotationTool               = modulePath + "/cmd/spice-agent-tui-annotations"
+	coreModule                   = "github.com/spice-framework/spice"
+	coreVersion                  = "v0.1.0-preview.2"
+	toolchainModule              = "github.com/spice-framework/toolchain"
+	toolchainVersion             = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
+	spiceTool                    = toolchainModule + "/cmd/spice"
+	coreAnnotationTool           = toolchainModule + "/cmd/spice-annotation-core"
+	minimumCoverage              = 85.0
+	minimumSemanticShellCoverage = 85.0
+	releaseWorkflowCommit        = "0fcd43dc8b41fad56c231d0e136ad8c762276ed5"
 )
 
 var output io.Writer = os.Stdout
@@ -81,19 +82,26 @@ func run(ctx context.Context, root, mode string) error {
 	composition := step{"Spice composition", func() error { return checkSpiceComposition(ctx, root) }}
 	vet := step{"go vet", func() error { return command(ctx, root, nil, "go", "vet", "./...") }}
 	test := step{"shuffled tests", func() error { return tests(ctx, root, false) }}
+	semanticShell := step{"semantic shell experiment", func() error {
+		return verifySemanticShellExperiment(ctx, root, mode)
+	}}
 	var steps []step
 	if networkAllowed(mode) {
 		steps = []step{identity, bootstrap}
 	} else {
 		switch mode {
 		case "fast":
-			steps = []step{identity, test}
+			steps = []step{identity, test, semanticShell}
 		case "check":
-			steps = []step{identity, formatting, modules, composition, vet, test}
+			steps = []step{identity, formatting, modules, composition, vet, test, semanticShell}
 		case "fmt":
 			steps = []step{identity, {"formatting write", func() error { return format(ctx, root, true) }}}
 		case "benchmark":
-			steps = []step{identity, {"runtime benchmarks", func() error { return benchmarks(ctx, root) }}}
+			steps = []step{
+				identity,
+				{"runtime benchmarks", func() error { return benchmarks(ctx, root) }},
+				{"semantic shell benchmarks", func() error { return semanticShellBenchmarks(ctx, root) }},
+			}
 		case "verify":
 			steps = []step{
 				identity, formatting, modules, composition, vet,
@@ -103,6 +111,7 @@ func run(ctx context.Context, root, mode string) error {
 				{"race tests", func() error { return tests(ctx, root, true) }},
 				{"coverage", func() error { return coverage(ctx, root) }},
 				{"offline vendor", func() error { return offline(ctx, root) }},
+				semanticShell,
 			}
 		default:
 			return fmt.Errorf("unknown mode %q", mode)
@@ -159,6 +168,21 @@ func benchmarkArguments() []string {
 		"-cpu=1",
 		"./tuittest",
 		"./internal/presentation",
+	}
+}
+
+func semanticShellBenchmarks(ctx context.Context, root string) error {
+	directory := filepath.Join(root, "experiments", "semantic-shell")
+	environment := map[string]string{
+		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOSUMDB": "off",
+		"GOTOOLCHAIN": "local", "GOWORK": "off",
+	}
+	return command(ctx, directory, environment, "go", semanticShellBenchmarkArguments()...)
+}
+
+func semanticShellBenchmarkArguments() []string {
+	return []string{
+		"test", "-run=^$", "-bench=^Benchmark", "-benchmem", "-benchtime=500x", "-count=5", "-cpu=1", ".",
 	}
 }
 
@@ -412,7 +436,11 @@ func bootstrapDependencies(ctx context.Context, root string, runner bootstrapRun
 		}
 	}()
 
-	graphs := []moduleGraph{{directory: root}, {directory: filepath.Join(root, "tools"), optional: true}}
+	graphs := []moduleGraph{
+		{directory: root},
+		{directory: filepath.Join(root, "tools"), optional: true},
+		{directory: filepath.Join(root, "experiments", "semantic-shell")},
+	}
 	for _, graph := range graphs {
 		if err := bootstrapModuleGraph(ctx, graph, runner); err != nil {
 			return err
@@ -705,6 +733,100 @@ func totalCoverage(report string) (float64, error) {
 		return 0, errors.New("coverage report has no total percentage")
 	}
 	return strconv.ParseFloat(strings.TrimSuffix(fields[len(fields)-1], "%"), 64)
+}
+
+func verifySemanticShellExperiment(ctx context.Context, root, mode string) (resultErr error) {
+	directory := filepath.Join(root, "experiments", "semantic-shell")
+	environment := map[string]string{
+		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOSUMDB": "off",
+		"GOTOOLCHAIN": "local", "GOWORK": "off",
+	}
+	if mode != "fast" {
+		if err := command(ctx, directory, environment, "go", "mod", "tidy", "-diff"); err != nil {
+			return err
+		}
+		if err := verifySemanticShellVendor(ctx, directory, environment); err != nil {
+			return err
+		}
+		if err := command(ctx, directory, environment, "go", "vet", "./..."); err != nil {
+			return err
+		}
+	}
+	if err := command(ctx, directory, environment, "go", "test", "-shuffle=on", "-count=1", "./..."); err != nil {
+		return err
+	}
+	if mode != "verify" {
+		return nil
+	}
+	if err := command(ctx, directory, environment, "go", "test", "-race", "-shuffle=on", "-count=1", "./..."); err != nil {
+		return err
+	}
+	profile, err := os.CreateTemp("", "spice-agent-tui-semantic-shell-coverage-*.out")
+	if err != nil {
+		return err
+	}
+	profilePath := profile.Name()
+	if err = profile.Close(); err != nil {
+		return err
+	}
+	defer func() { resultErr = errors.Join(resultErr, os.Remove(profilePath)) }()
+	if err = command(ctx, directory, environment, "go", "test", "-covermode=atomic", "-coverprofile="+profilePath, "."); err != nil {
+		return err
+	}
+	report, err := capture(ctx, directory, "go", "tool", "cover", "-func="+profilePath)
+	if err != nil {
+		return err
+	}
+	percentage, err := totalCoverage(report)
+	if err != nil {
+		return err
+	}
+	if _, err = fmt.Fprintf(output, "semantic shell coverage %.1f%% (minimum %.1f%%)\n", percentage, minimumSemanticShellCoverage); err != nil {
+		return err
+	}
+	if err = validateSemanticShellCoverage(percentage); err != nil {
+		return err
+	}
+	return command(ctx, directory, environment, "go", "build", "-trimpath", "./...")
+}
+
+func verifySemanticShellVendor(
+	ctx context.Context,
+	directory string,
+	environment map[string]string,
+) error {
+	temporary, err := os.MkdirTemp("", "spice-agent-tui-semantic-shell-vendor-*")
+	if err != nil {
+		return fmt.Errorf("create semantic shell vendor comparison: %w", err)
+	}
+	defer removeTree(temporary)
+	candidate := filepath.Join(temporary, "vendor")
+	if err = command(ctx, directory, environment, "go", "mod", "vendor", "-o", candidate); err != nil {
+		return err
+	}
+	current, err := treeDigests(filepath.Join(directory, "vendor"))
+	if err != nil {
+		return err
+	}
+	expected, err := treeDigests(candidate)
+	if err != nil {
+		return err
+	}
+	return validateSemanticShellVendor(current, expected)
+}
+
+func validateSemanticShellCoverage(percentage float64) error {
+	if percentage < minimumSemanticShellCoverage {
+		return fmt.Errorf("semantic shell coverage %.1f%% is below %.1f%%", percentage, minimumSemanticShellCoverage)
+	}
+	return nil
+}
+
+func validateSemanticShellVendor(current, expected map[string][sha256.Size]byte) error {
+	if !maps.Equal(current, expected) {
+		return errors.New("semantic shell vendor differs from a fresh go mod vendor result")
+	}
+	return nil
 }
 
 func offline(ctx context.Context, root string) error {

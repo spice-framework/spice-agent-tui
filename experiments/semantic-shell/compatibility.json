@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "status": "experimental",
+  "module": "github.com/spice-framework/spice-agent-tui/experiments/semantic-shell",
+  "go": "1.26.0",
+  "toolchain": "go1.26.5",
+  "dependency": {
+    "module": "github.com/spice-framework/spice-agent-tui",
+    "version": "v0.1.0-preview.1",
+    "sum": "h1:r7MbWvF6UrvAV+CZwk6LNSbrZEV/VVIE6B0pmOmsbOA=",
+    "go_mod_sum": "h1:ZbrQXPLB1QWPuSa8fW/PsUu/LeAhFjKF4VyEL3LyrzI=",
+    "origin_commit": "0e6cfb1a58b8bb2cf711fd36dfa66a8cd4e9867f"
+  },
+  "public_seams": [
+    "Intent",
+    "Session",
+    "Session.Perform",
+    "Session.Receive",
+    "SessionUpdate"
+  ],
+  "forbidden_dependencies": [
+    "github.com/charmbracelet/bubbletea/v2",
+    "terminal plugin APIs"
+  ],
+  "runtime_network": false,
+  "replace_directives": false,
+  "promotion_gate": "A second independently implemented semantic client must pass the public Session conformance contract.",
+  "deletion": "Remove experiments/semantic-shell and its root quality/evidence references; no product API or generated file changes are required."
+}

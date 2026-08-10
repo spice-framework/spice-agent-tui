@@ -42,6 +42,16 @@ func TestBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
 	}
 }
 
+func TestSemanticShellBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
+	t.Parallel()
+	want := []string{
+		"test", "-run=^$", "-bench=^Benchmark", "-benchmem", "-benchtime=500x", "-count=5", "-cpu=1", ".",
+	}
+	if got := semanticShellBenchmarkArguments(); !slices.Equal(got, want) {
+		t.Fatalf("semantic shell benchmark arguments = %q, want %q", got, want)
+	}
+}
+
 func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
@@ -208,7 +218,8 @@ func TestBootstrapPreservesRepositoryOnSuccessFailureAndCancellation(t *testing.
 			}
 			var calls [][]string
 			runner := func(callContext context.Context, directory string, arguments ...string) error {
-				if directory != root && directory != filepath.Join(root, "tools") {
+				if directory != root && directory != filepath.Join(root, "tools") &&
+					directory != filepath.Join(root, "experiments", "semantic-shell") {
 					t.Fatalf("unexpected directory %q", directory)
 				}
 				calls = append(calls, append([]string(nil), arguments...))
@@ -225,7 +236,7 @@ func TestBootstrapPreservesRepositoryOnSuccessFailureAndCancellation(t *testing.
 			if digestErr != nil || !maps.Equal(before, after) {
 				t.Fatalf("repository changed: %v", digestErr)
 			}
-			wantCalls := 2
+			wantCalls := 3
 			if test.runnerErr != nil {
 				wantCalls = 1
 			}
@@ -264,8 +275,42 @@ func TestBootstrapAllowsMissingToolsModule(t *testing.T) {
 		calls++
 		return nil
 	})
-	if err != nil || calls != 1 {
+	if err != nil || calls != 2 {
 		t.Fatalf("bootstrapDependencies() = calls %d, error %v", calls, err)
+	}
+}
+
+func TestBootstrapRequiresSemanticShellModule(t *testing.T) {
+	t.Parallel()
+	root := bootstrapFixture(t, false)
+	if err := os.Remove(filepath.Join(root, "experiments", "semantic-shell", "go.mod")); err != nil {
+		t.Fatal(err)
+	}
+	err := bootstrapDependencies(context.Background(), root, func(context.Context, string, ...string) error {
+		return nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "semantic-shell") {
+		t.Fatalf("bootstrapDependencies() error = %v", err)
+	}
+}
+
+func TestSemanticShellCoverageAndVendorFailClosed(t *testing.T) {
+	t.Parallel()
+	if err := validateSemanticShellCoverage(minimumSemanticShellCoverage); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateSemanticShellCoverage(minimumSemanticShellCoverage - 0.1); err == nil {
+		t.Fatal("semantic shell coverage below the floor was accepted")
+	}
+	digest := sha256.Sum256([]byte("exact vendor"))
+	exact := map[string][sha256.Size]byte{"modules.txt": digest}
+	if err := validateSemanticShellVendor(exact, maps.Clone(exact)); err != nil {
+		t.Fatal(err)
+	}
+	mutated := maps.Clone(exact)
+	mutated["modules.txt"] = sha256.Sum256([]byte("mutated vendor"))
+	if err := validateSemanticShellVendor(exact, mutated); err == nil {
+		t.Fatal("semantic shell vendor drift was accepted")
 	}
 }
 
@@ -288,7 +333,7 @@ func TestBootstrapEnvironmentRejectsCredentials(t *testing.T) {
 func bootstrapFixture(t *testing.T, tools bool) string {
 	t.Helper()
 	root := t.TempDir()
-	modules := []string{root}
+	modules := []string{root, filepath.Join(root, "experiments", "semantic-shell")}
 	if tools {
 		modules = append(modules, filepath.Join(root, "tools"))
 	}

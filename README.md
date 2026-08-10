@@ -25,7 +25,11 @@ The implemented slice includes:
 - canonical `@UIShell` and `@UIRenderer` provider annotations;
 - explicit `/autoconfigure` fallback beans proven by committed generated Go; and
 - an agent-friendly `tuittest` harness for scripted interaction and pixel-perfect
-  goldens (see [`docs/tuittest.md`](docs/tuittest.md)).
+  goldens (see [`docs/tuittest.md`](docs/tuittest.md)); and
+- a removable, nested
+  [`experiments/semantic-shell`](experiments/semantic-shell) Phase 7 proof that
+  consumes the released public Session API using only the standard library and
+  emits deterministic portable JSONL without Bubble Tea.
 
 ## Session boundary
 

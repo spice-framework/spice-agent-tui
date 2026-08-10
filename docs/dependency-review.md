@@ -89,6 +89,17 @@ vendor comparison, and vendor-only build/test are mandatory gates. Verification
 runs analysis offline after the explicit, source-preserving
 `make tools-bootstrap` target has populated the cache.
 
+## Semantic-shell experiment graph
+
+The removable Phase 7 module at `experiments/semantic-shell` directly pins the
+published `spice-agent-tui v0.1.0-preview.1` module with no replacement. It
+imports only the public root Session/value package and therefore selects a
+strict subset of this reviewed product graph; notably it does not select or
+import Bubble Tea. Its own checksum file, vendor tree, compatibility manifest,
+and [dependency review](../experiments/semantic-shell/DEPENDENCIES.md) are
+verified from the repository root. The experiment performs no runtime network
+or dependency discovery.
+
 ## Verification tools
 
 The isolated `tools` module pins golangci-lint 2.12.2, gofumpt 0.10.0,

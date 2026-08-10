@@ -52,6 +52,14 @@ receive is armed at a time, ordinary work and cancellation use independent
 bounded control lanes, operation tokens reject stale completions, and successful
 prompt submission commits local history exactly once.
 
+The nested `experiments/semantic-shell` module independently consumes the
+released public Session contract. Its standard-library JSONL shell preserves
+the same one-receive, serial ordinary-operation, and independent cancel lanes
+without importing Bubble Tea or terminal plugins. It is a removable Phase 7
+stress prototype, not another production presentation stack; its exact evidence
+and deletion boundary are documented in
+[`docs/semantic-shell-experiment.md`](docs/semantic-shell-experiment.md).
+
 ## Presentation
 
 The fixed renderer is pure: a semantic snapshot, bounded size, and immutable

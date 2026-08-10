@@ -8,7 +8,8 @@ make tools-bootstrap
 
 This is the only network-enabled quality mode. It requires Go 1.26.5, validates
 the repository identity and exact tool pins, downloads `all` from private
-temporary copies of both `go.mod`/`go.sum` pairs, disables Go authentication,
+temporary copies of the product, tools, and semantic-shell experiment module
+graphs, disables Go authentication,
 and permits only the public checksum database and module proxy. It verifies that
 the repository is byte-for-byte unchanged even when a download fails. A
 repository without a tools module is valid. No API keys, tokens, passwords, or
@@ -17,10 +18,13 @@ secrets are passed to the Go subprocess.
 Every child Go command uses the selected Go 1.26.5 binary from `runtime.GOROOT`,
 not an older `go` that may appear first on `PATH`.
 
-- `make fast` validates repository identity and runs shuffled tests.
-- `make check` adds formatting, module/vendor consistency, vet, and shuffled tests.
-- `make benchmark` runs the five adopted deterministic runtime benchmarks as
-  five fixed 500-iteration, single-CPU samples with the offline vendor graph.
+- `make fast` validates repository identity and runs shuffled root and
+  semantic-shell tests.
+- `make check` adds formatting, module/vendor consistency, vet, and shuffled
+  tests, including a byte-current nested experiment vendor proof.
+- `make benchmark` runs the five adopted deterministic runtime benchmarks and
+  two semantic-shell experiment benchmarks as five fixed 500-iteration,
+  single-CPU samples with their offline vendor graphs.
 - `make verify` adds lint, NilAway, gosec, govulncheck, race tests, coverage, and
   vendor-offline tests/builds, including the annotation tool smoke path, real
   pinned Spice compiler fixtures for alias acceptance and invalid result types,
@@ -40,6 +44,9 @@ not an older `go` that may appear first on `PATH`.
   timeout cancellation, exact styled/plain/report goldens, missing-fixture
   refusal, and ScriptSession queue/close behavior,
   exact auto-configuration order, and external generated-shell normal-exit tests.
+  The nested semantic-shell module additionally runs offline shuffled and race
+  tests, enforces 85% statement coverage, and builds from its committed vendor
+  graph. See [Alternate semantic shell evidence](semantic-shell-experiment.md).
 
 Repository identity also validates `.github/workflows/release.yml` as a
 single-job, secret-free caller of the organization keyless Go-module release

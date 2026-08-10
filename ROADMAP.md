@@ -40,3 +40,10 @@ Repository-local changes must preserve the generated Spice composition proof,
 the UI-neutral `Session` boundary, deterministic rendering, cancellation, and
 the public `tuittest` contract. Pre-1.0 APIs remain open to evidence-driven
 revision until the canonical stabilization phase freezes compatibility.
+
+The repository now carries one bounded Phase 7 evidence module:
+[`experiments/semantic-shell`](experiments/semantic-shell) proves an alternate
+semantic client against the published TUI module with no local replacement,
+Bubble Tea import, terminal plugin, or transport ownership. This local evidence
+does not mark the cross-repository stabilization phase complete; the canonical
+ledger remains authoritative.
