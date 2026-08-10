@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -183,7 +184,14 @@ func copyTerminalOutput(terminal *tuittest.VirtualTerminal, process crosspty.Pty
 
 func writeTerminalLine(t *testing.T, process crosspty.Pty, value string) {
 	t.Helper()
-	line := value + "\r\n"
+	lineEnding := "\n"
+	if runtime.GOOS == "windows" {
+		// ConPTY expects the carriage-return key sequence to submit a line.
+		lineEnding = "\r\n"
+	}
+	// A Unix canonical PTY accepts one line-feed. Supplying CRLF there can
+	// become two logical line endings and leave an empty command queued.
+	line := value + lineEnding
 	written, err := io.WriteString(process, line)
 	if err != nil {
 		t.Fatal(err)
