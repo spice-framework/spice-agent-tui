@@ -43,7 +43,9 @@ not an older `go` that may appear first on `PATH`.
   deterministic `tuittest` scripts, grapheme input, injected key maps, command
   timeout cancellation, exact styled/plain/report goldens, missing-fixture
   refusal, ScriptSession queue/close behavior, and bounded VT cell, cursor,
-  alternate-screen, resize, transcript, chunking, and wait behavior,
+  alternate-screen, resize, transcript, chunking, and wait behavior, plus a
+  real current-test-binary Unix PTY/Windows ConPTY handshake covering TTY
+  identity, input, output, resize, terminal modes, exit, and cleanup,
   exact auto-configuration order, and external generated-shell normal-exit tests.
   The nested semantic-shell module additionally runs offline shuffled and race
   tests, enforces 85% statement coverage, and builds from its committed vendor

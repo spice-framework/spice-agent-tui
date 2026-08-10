@@ -52,6 +52,10 @@ func (screen Screen) Cursor() (x, y int, visible bool) {
 	return screen.cursorX, screen.cursorY, screen.cursorVisible
 }
 
+// AlternateScreen reports whether a virtual-terminal capture is using the
+// alternate screen buffer. Semantic model captures always report false.
+func (screen Screen) AlternateScreen() bool { return screen.altScreen }
+
 // Prompt returns the current editor value.
 func (screen Screen) Prompt() string { return screen.prompt }
 
@@ -90,7 +94,8 @@ func (screen Screen) EqualStyled(other Screen) bool {
 		screen.height == other.height &&
 		screen.cursorX == other.cursorX &&
 		screen.cursorY == other.cursorY &&
-		screen.cursorVisible == other.cursorVisible
+		screen.cursorVisible == other.cursorVisible &&
+		screen.altScreen == other.altScreen
 }
 
 // EqualPlain reports exact plain-frame equality including dimensions.
@@ -112,6 +117,7 @@ func (screen Screen) Diff(other Screen) string {
 	writeMetaDiff(&builder, "cursorX", screen.cursorX, other.cursorX)
 	writeMetaDiff(&builder, "cursorY", screen.cursorY, other.cursorY)
 	writeMetaDiff(&builder, "cursorVisible", screen.cursorVisible, other.cursorVisible)
+	writeMetaDiff(&builder, "alternateScreen", screen.altScreen, other.altScreen)
 	if screen.styled != other.styled {
 		builder.WriteString("--- got styled ---\n")
 		builder.WriteString(screen.styled)

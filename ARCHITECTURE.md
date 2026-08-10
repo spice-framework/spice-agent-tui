@@ -98,8 +98,11 @@ The same package owns an output-only bounded virtual terminal. It interprets
 real VT bytes into the existing immutable `Screen` contract, including Unicode
 cells, cursor visibility and position, alternate-screen transitions, and
 resize. Writes are transcript-bounded and event-driven screen waits use caller
-context without sleeps. This remains distinct from process launch and
-PTY/ConPTY ownership, which belong to distribution acceptance.
+context without sleeps. Repository-only native acceptance composes that
+emulator with the current test executable under Unix PTY or Windows ConPTY and
+process-group/Job Object cleanup. Arbitrary child-process ownership is not
+added to the public TUI API or production runtime; distribution acceptance
+still owns the shipped executable.
 
 `terminal.NewShell` accepts only public interfaces and immutable values. It
 validates the initial view, snapshots the `Theme` SPI through `NewTheme`, copies

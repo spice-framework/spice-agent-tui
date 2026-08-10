@@ -29,11 +29,16 @@ func TestVirtualTerminalInterpretsAlternateScreenUnicodeAndCursor(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !screen.altScreen || screen.cursorVisible || !screen.Contains("界x") {
+	if !screen.AlternateScreen() || screen.cursorVisible || !screen.Contains("界x") {
 		t.Fatalf("terminal capture:\n%s", screen.AgentReport())
 	}
 	if x, y, visible := screen.Cursor(); x != 3 || y != 0 || visible {
 		t.Fatalf("cursor = %d,%d,%t, want 3,0,false", x, y, visible)
+	}
+	mainScreen := screen
+	mainScreen.altScreen = false
+	if screen.EqualStyled(mainScreen) || !strings.Contains(screen.Diff(mainScreen), "alternateScreen") {
+		t.Fatal("alternate-screen state did not participate in exact screen comparison")
 	}
 	for index, line := range screen.Lines() {
 		if ansi.StringWidth(line) != 12 {

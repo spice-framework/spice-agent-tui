@@ -83,6 +83,30 @@ requires exact cell/cursor/alternate-screen/resize, chunking, fuzz, race,
 license, checksum, and offline-vendor review. Native PTY/ConPTY ownership
 remains outside this dependency and outside the TUI library runtime.
 
+### CrossPTY v1.1.0
+
+`github.com/Kodecable/crosspty` is pinned exactly at v1.1.0 (upstream tag
+commit `0dbd5253c95baefd8c3e53cb0be1d44200884448`, sum
+`h1:DlhZUGRB5kWJv20CLyol1ye/s5rOOXy0qNsgdcmKBFY=`) and is MIT licensed. It is
+used only by the repository's native terminal acceptance package: no public or
+production TUI package imports it. It supplies classic Unix PTYs and Windows
+ConPTY plus bounded process-group/Job Object cleanup. The fixture launches only
+its exact current Go test executable with a fixed helper selector, no shell,
+network, downloaded executable, or user command. The child receives only a
+fixed allowlist of locale, temporary-directory, and home-directory variables;
+API keys and all other application environment variables are excluded and a
+secret-canary regression locks that boundary.
+
+The parent owns a 30-second test context, a 5-second cleanup budget, exact
+80x24→100x30 resize, bounded output capture, and an explicit quit handshake
+before process exit. This handshake also avoids the documented Darwin kernel
+boundary where unread output from a very short-lived PTY process can be
+discarded during teardown. Any update requires real Windows, Linux, and macOS
+TTY identity, alternate-screen, cursor, Unicode/ANSI, resize, input, exit,
+descendant-cleanup, race, checksum, license, vulnerability, and offline-vendor
+evidence. CrossPTY is process-test infrastructure, not a sandbox or production
+launcher.
+
 ### Rivo uniseg v0.4.7
 
 `github.com/rivo/uniseg` is pinned directly at v0.4.7 and is MIT licensed. The

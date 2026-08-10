@@ -4,7 +4,8 @@
 harness for pixel-perfect Spice Agent terminal verification.
 
 It drives the **real presentation model and FixedRenderer** and includes a
-bounded modern virtual terminal for output conformance, without:
+bounded modern virtual terminal for output conformance, without making the
+public package own:
 
 - a child process, PTY, or ConPTY;
 - Bubble Tea's async event loop;
@@ -146,9 +147,15 @@ alternate-screen state. `WaitFor` is notification-driven and has no polling or
 sleep interval; caller context owns its deadline. Predicate panics become a
 fixed diagnostic without reflecting panic text.
 
-The virtual terminal deliberately does not launch a process or claim native
-TTY behavior. Released-distribution acceptance owns the separate Linux PTY and
-Windows ConPTY process proof and feeds its bounded output into this emulator.
+The virtual terminal deliberately does not launch a process. The repository's
+separate `internal/nativeacceptance` suite launches its own exact test binary
+under a real Unix PTY or Windows ConPTY, feeds output into `VirtualTerminal`,
+and proves TTY identity, alternate-screen/cursor control, input, Unicode/ANSI
+rendering, 80x24→100x30 resize propagation, bounded capture, clean exit, and
+process-group/Job Object cleanup on every hosted platform. This keeps arbitrary
+process launch out of the public library while testing the same composition an
+application uses with its own trusted process fixture. Released-distribution
+acceptance remains responsible for the actual shipped terminal executable.
 
 ## Screen inspection for agents
 
@@ -157,6 +164,7 @@ screen.Plain()          // fixed-size plain text grid
 screen.Styled()         // ANSI with <ESC> tokens for goldens
 screen.Lines()          // plain lines
 screen.Contains("...")  // substring check
+screen.AlternateScreen() // virtual-terminal alternate-buffer state
 screen.Prompt()         // editor value
 screen.StatusLevel()    // ready/error/...
 screen.Activity()       // activity strings
@@ -199,7 +207,8 @@ err := driver.RunScenario(
 | Presentation model + FixedRenderer | Daemon / gRPC / tools |
 | Scripted Session SPI | Real OpenAI / OpenRouter |
 | Golden styled/plain frames | PTY screenshot OCR |
-| VT output/cursor/alternate-screen/resize | Process launch or terminal ownership |
+| VT output/cursor/alternate-screen/resize | Arbitrary process launch in public API |
+| Repository-owned Unix PTY/Windows ConPTY acceptance | Production process ownership |
 | Agent text dumps | Visual font rasterization |
 
 This package imports `internal/presentation` (same module). External modules
