@@ -94,6 +94,13 @@ operations, are cancelled on quit, close, or timeout, and cannot turn a timed
 out operation into apparent success. `ScriptSession` separately remains a
 cancellation-aware receive queue for full shell/facade tests.
 
+The same package owns an output-only bounded virtual terminal. It interprets
+real VT bytes into the existing immutable `Screen` contract, including Unicode
+cells, cursor visibility and position, alternate-screen transitions, and
+resize. Writes are transcript-bounded and event-driven screen waits use caller
+context without sleeps. This remains distinct from process launch and
+PTY/ConPTY ownership, which belong to distribution acceptance.
+
 `terminal.NewShell` accepts only public interfaces and immutable values. It
 validates the initial view, snapshots the `Theme` SPI through `NewTheme`, copies
 bindings through model construction, adapts the injected Session, and delegates

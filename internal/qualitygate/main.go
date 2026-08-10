@@ -161,7 +161,7 @@ func benchmarkArguments() []string {
 	return []string{
 		"test",
 		"-run=^$",
-		"-bench=^Benchmark(SessionEventIngestionAndScreen|RenderScreen|ScriptSessionReceiveCanceled|ModelSnapshotUpdateAndView|FixedRendererRender)$",
+		"-bench=^Benchmark(SessionEventIngestionAndScreen|RenderScreen|ScriptSessionReceiveCanceled|VirtualTerminalFrameCapture|ModelSnapshotUpdateAndView|FixedRendererRender)$",
 		"-benchmem",
 		"-benchtime=500x",
 		"-count=5",
@@ -198,6 +198,7 @@ func checkIdentity(root string) error {
 		"\ntoolchain go1.26.5\n",
 		"charm.land/bubbletea/v2 v2.0.8",
 		"github.com/charmbracelet/x/ansi v0.11.7",
+		"github.com/charmbracelet/x/vt v0.0.0-20260803091719-3755ebad01b1",
 		coreModule + " " + coreVersion,
 		toolchainModule + " " + toolchainVersion,
 		"\t" + annotationTool + "\n",

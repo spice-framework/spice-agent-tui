@@ -24,8 +24,9 @@ The implemented slice includes:
   signatures expose no Bubble Tea or internal types;
 - canonical `@UIShell` and `@UIRenderer` provider annotations;
 - explicit `/autoconfigure` fallback beans proven by committed generated Go; and
-- an agent-friendly `tuittest` harness for scripted interaction and pixel-perfect
-  goldens (see [`docs/tuittest.md`](docs/tuittest.md)); and
+- an agent-friendly `tuittest` harness for scripted interaction, pixel-perfect
+  goldens, and bounded VT cell/cursor/alternate-screen conformance (see
+  [`docs/tuittest.md`](docs/tuittest.md)); and
 - a removable, nested
   [`experiments/semantic-shell`](experiments/semantic-shell) Phase 7 proof that
   consumes the released public Session API using only the standard library and

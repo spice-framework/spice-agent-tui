@@ -64,6 +64,25 @@ ANSI-aware truncation operations, which are required for correct Unicode cell
 widths without splitting style sequences. It performs no I/O, logging,
 telemetry, persistence, or network access.
 
+### Charmbracelet x/vt 3755ebad01b1
+
+`github.com/charmbracelet/x/vt` is pinned at the exact upstream commit
+`3755ebad01b1366a9eeb5e4e80d664b404ab6eff` (module pseudo-version
+`v0.0.0-20260803091719-3755ebad01b1`, sum
+`h1:iS4IE3G9sjxjESAxhtIe2xxzrlLct83b7De0KlJDunE=`) and is MIT licensed. It is
+maintained by Charmbracelet and reuses the already selected ANSI, Unicode, and
+Ultraviolet terminal graph. The public `tuittest.VirtualTerminal` uses it only
+as an in-memory, output-only terminal interpreter; no child process, PTY,
+filesystem, environment, logging, telemetry, or network operation is added.
+
+Output and control-string memory are bounded by the harness transcript limit
+and upstream parser bounds. Spice wraps all access with one ownership mutex,
+captures defensive immutable values, rejects overflow before interpretation,
+and contains caller predicate panics. The dependency is pre-1.0, so any update
+requires exact cell/cursor/alternate-screen/resize, chunking, fuzz, race,
+license, checksum, and offline-vendor review. Native PTY/ConPTY ownership
+remains outside this dependency and outside the TUI library runtime.
+
 ### Rivo uniseg v0.4.7
 
 `github.com/rivo/uniseg` is pinned directly at v0.4.7 and is MIT licensed. The

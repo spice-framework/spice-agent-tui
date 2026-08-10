@@ -3,14 +3,17 @@
 //
 // It is designed so coding agents and humans can:
 //
-//   - drive keyboard interaction without a real PTY;
+//   - drive semantic keyboard interaction without a real PTY;
 //   - inject Session updates without a daemon;
 //   - capture exact terminal frames (styled and plain);
+//   - interpret real VT output, cursor state, alternate-screen mode, and resize;
 //   - assert pixel-perfect goldens with optional UPDATE_GOLDEN refresh;
 //   - dump multi-format screen reports that agents can read in logs.
 //
-// The harness uses the real presentation Model and FixedRenderer. It does not
-// start Bubble Tea's event loop, discover a daemon, or perform network I/O.
+// The harness uses the real presentation Model and FixedRenderer. Its virtual
+// terminal interprets output only; it does not start a child process or claim a
+// native PTY/ConPTY boundary. The package never discovers a daemon or performs
+// network I/O.
 //
 // Typical agent workflow:
 //

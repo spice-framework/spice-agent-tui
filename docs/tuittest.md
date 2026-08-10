@@ -3,9 +3,10 @@
 `github.com/spice-framework/spice-agent-tui/tuittest` is the agent-friendly
 harness for pixel-perfect Spice Agent terminal verification.
 
-It drives the **real presentation model and FixedRenderer** without:
+It drives the **real presentation model and FixedRenderer** and includes a
+bounded modern virtual terminal for output conformance, without:
 
-- a PTY or real terminal emulator;
+- a child process, PTY, or ConPTY;
 - Bubble Tea's async event loop;
 - daemon discovery, gRPC, or network I/O.
 
@@ -16,7 +17,9 @@ UI:
 
 1. **scriptable** (keys, typing, session updates);
 2. **inspectable** (`Screen.AgentReport()` dumps plain + styled + semantics);
-3. **pixel-comparable** (fixed-size frames, golden files, cursor metadata).
+3. **pixel-comparable** (fixed-size frames, golden files, cursor metadata);
+4. **terminal-verifiable** (interpreted VT cells, Unicode width, cursor,
+   alternate screen, resize, bounded raw transcript, and event-driven waits).
 
 ## Quick start
 
@@ -115,6 +118,38 @@ screen, err := tuittest.RenderScreen(viewData, tuittest.RenderOptions{
 })
 ```
 
+## Virtual-terminal conformance
+
+Use `VirtualTerminal` when the subject is raw output from a real Bubble Tea
+program or another terminal producer rather than a direct semantic frame:
+
+```go
+terminal, err := tuittest.NewVirtualTerminal(tuittest.VirtualTerminalOptions{
+    Width: 80,
+    Height: 24,
+})
+if err != nil {
+    t.Fatal(err)
+}
+defer terminal.Close()
+
+_, _ = terminal.WriteString("\x1b[?1049h\x1b[2J\x1b[Hready")
+screen, err := terminal.WaitFor(t.Context(), "ready", func(screen tuittest.Screen) bool {
+    return screen.Contains("ready")
+})
+```
+
+Writes are atomic against a configured transcript limit. Captures expose the
+same `Screen` contract as the semantic driver, including exact dimensions,
+plain cells, normalized styling, cursor coordinates/visibility, and
+alternate-screen state. `WaitFor` is notification-driven and has no polling or
+sleep interval; caller context owns its deadline. Predicate panics become a
+fixed diagnostic without reflecting panic text.
+
+The virtual terminal deliberately does not launch a process or claim native
+TTY behavior. Released-distribution acceptance owns the separate Linux PTY and
+Windows ConPTY process proof and feeds its bounded output into this emulator.
+
 ## Screen inspection for agents
 
 ```go
@@ -162,8 +197,9 @@ err := driver.RunScenario(
 | In scope | Out of scope |
 | --- | --- |
 | Presentation model + FixedRenderer | Daemon / gRPC / tools |
-| Scripted Session SPI | Real OpenAI / OmniRoute |
+| Scripted Session SPI | Real OpenAI / OpenRouter |
 | Golden styled/plain frames | PTY screenshot OCR |
+| VT output/cursor/alternate-screen/resize | Process launch or terminal ownership |
 | Agent text dumps | Visual font rasterization |
 
 This package imports `internal/presentation` (same module). External modules

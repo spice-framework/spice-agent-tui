@@ -107,6 +107,33 @@ func BenchmarkScriptSessionReceiveCanceled(b *testing.B) {
 	}
 }
 
+func BenchmarkVirtualTerminalFrameCapture(b *testing.B) {
+	payload := "\x1b[?1049h\x1b[2J\x1b[H\x1b[38;2;56;189;248mSpice Agent\x1b[0m\r\n> verify terminal"
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for b.Loop() {
+		terminal, err := tuittest.NewVirtualTerminal(tuittest.VirtualTerminalOptions{
+			Width:  80,
+			Height: 24,
+		})
+		if err != nil {
+			b.Fatal(err)
+		}
+		if _, writeErr := terminal.WriteString(payload); writeErr != nil {
+			b.Fatal(writeErr)
+		}
+		screen, err := terminal.Screen("benchmark-vt")
+		if err != nil {
+			b.Fatal(err)
+		}
+		if err := terminal.Close(); err != nil {
+			b.Fatal(err)
+		}
+		benchmarkScreen = screen
+	}
+}
+
 func benchmarkView(b *testing.B) agenttui.ViewData {
 	b.Helper()
 	workspace, err := agenttui.NewWorkspace(benchmarkText(b, "PetClinic"), []agenttui.Section{

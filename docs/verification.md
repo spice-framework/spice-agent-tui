@@ -22,7 +22,7 @@ not an older `go` that may appear first on `PATH`.
   semantic-shell tests.
 - `make check` adds formatting, module/vendor consistency, vet, and shuffled
   tests, including a byte-current nested experiment vendor proof.
-- `make benchmark` runs the five adopted deterministic runtime benchmarks and
+- `make benchmark` runs the six adopted deterministic runtime benchmarks and
   two semantic-shell experiment benchmarks as five fixed 500-iteration,
   single-CPU samples with their offline vendor graphs.
 - `make verify` adds lint, NilAway, gosec, govulncheck, race tests, coverage, and
@@ -42,7 +42,8 @@ not an older `go` that may appear first on `PATH`.
   public-facade prompt/submit/cancel/Ctrl-Q terminal interaction,
   deterministic `tuittest` scripts, grapheme input, injected key maps, command
   timeout cancellation, exact styled/plain/report goldens, missing-fixture
-  refusal, and ScriptSession queue/close behavior,
+  refusal, ScriptSession queue/close behavior, and bounded VT cell, cursor,
+  alternate-screen, resize, transcript, chunking, and wait behavior,
   exact auto-configuration order, and external generated-shell normal-exit tests.
   The nested semantic-shell module additionally runs offline shuffled and race
   tests, enforces 85% statement coverage, and builds from its committed vendor

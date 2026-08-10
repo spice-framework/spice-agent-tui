@@ -29,7 +29,7 @@ func TestBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
 	want := []string{
 		"test",
 		"-run=^$",
-		"-bench=^Benchmark(SessionEventIngestionAndScreen|RenderScreen|ScriptSessionReceiveCanceled|ModelSnapshotUpdateAndView|FixedRendererRender)$",
+		"-bench=^Benchmark(SessionEventIngestionAndScreen|RenderScreen|ScriptSessionReceiveCanceled|VirtualTerminalFrameCapture|ModelSnapshotUpdateAndView|FixedRendererRender)$",
 		"-benchmem",
 		"-benchtime=500x",
 		"-count=5",
@@ -415,6 +415,10 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "charm.land/bubbletea") {
 		t.Fatalf("checkIdentity(noncanonical Bubble Tea) error = %v", identityErr)
 	}
+	writeFile(t, root, "go.mod", strings.Replace(validMod, "3755ebad01b1", "000000000000", 1))
+	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "github.com/charmbracelet/x/vt") {
+		t.Fatalf("checkIdentity(stale virtual terminal) error = %v", identityErr)
+	}
 	writeFile(t, root, "go.mod", validMod+"\nreplace charm.land/bubbletea/v2 => ../local\n")
 	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "unreplaced") {
 		t.Fatalf("checkIdentity(replaced Bubble Tea) error = %v", identityErr)
@@ -436,7 +440,8 @@ func validIdentityGoMod() string {
 	return "module " + modulePath + "\n\ngo 1.26.0\n\ntoolchain go1.26.5\n\n" +
 		"tool (\n\t" + annotationTool + "\n\t" + coreAnnotationTool + "\n\t" + spiceTool + "\n)\n\n" +
 		"require (\n\tcharm.land/bubbletea/v2 v2.0.8\n" +
-		"\tgithub.com/charmbracelet/x/ansi v0.11.7\n\t" + coreModule + " " + coreVersion + "\n)\n\n" +
+		"\tgithub.com/charmbracelet/x/ansi v0.11.7\n" +
+		"\tgithub.com/charmbracelet/x/vt v0.0.0-20260803091719-3755ebad01b1\n\t" + coreModule + " " + coreVersion + "\n)\n\n" +
 		"require " + toolchainModule + " " + toolchainVersion + " // indirect\n"
 }
 
