@@ -14,15 +14,16 @@ The suite measures:
   deterministic hooks used by `tuittest`; and
 - the fixed production renderer in isolation.
 
-Run the complete suite from the repository root with the vendored dependency
-graph:
+Run the complete suite through the repository-owned offline gate:
 
 ```text
-GOWORK=off GOPROXY=off go test -mod=vendor -run '^$' -bench '^Benchmark' -benchmem -count=5 ./...
+make benchmark
 ```
 
-In PowerShell, set `$env:GOWORK = 'off'` and `$env:GOPROXY = 'off'` before the
-same `go test` command.
+The gate selects exactly the five adopted benchmarks, runs five 500-iteration
+samples with `-cpu=1`, records allocations, forces `GOWORK=off`, and uses only
+the committed vendor graph with the proxy and checksum database disabled.
+Missing dependencies therefore fail instead of causing a hidden download.
 
 ## Provisional baseline
 
@@ -44,8 +45,9 @@ base commit `0e6cfb1a58b8bb2cf711fd36dfa66a8cd4e9867f`:
 | `ModelSnapshotUpdateAndView` | 62,894 | 9,643 | 127 |
 | `FixedRendererRender` | 25,887 | 6,063 | 65 |
 
-The observation used the exact five-sample command above. The source identities
-were:
+The observation predates the repository-owned command and used the equivalent
+five-sample benchmark selection. Future observations use `make benchmark`.
+The source identities were:
 
 | File | SHA-256 |
 | --- | --- |

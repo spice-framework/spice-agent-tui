@@ -43,7 +43,7 @@ func main() {
 }
 
 func execute() int {
-	mode := flag.String("mode", "verify", "verification mode: tools-bootstrap, fast, check, fmt, or verify")
+	mode := flag.String("mode", "verify", "verification mode: tools-bootstrap, fast, check, fmt, benchmark, or verify")
 	flag.Parse()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
@@ -92,6 +92,8 @@ func run(ctx context.Context, root, mode string) error {
 			steps = []step{identity, formatting, modules, composition, vet, test}
 		case "fmt":
 			steps = []step{identity, {"formatting write", func() error { return format(ctx, root, true) }}}
+		case "benchmark":
+			steps = []step{identity, {"runtime benchmarks", func() error { return benchmarks(ctx, root) }}}
 		case "verify":
 			steps = []step{
 				identity, formatting, modules, composition, vet,
@@ -137,6 +139,28 @@ func checkSpiceComposition(ctx context.Context, root string) error {
 }
 
 func networkAllowed(mode string) bool { return mode == "tools-bootstrap" }
+
+func benchmarks(ctx context.Context, root string) error {
+	environment := map[string]string{
+		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOSUMDB": "off",
+		"GOTOOLCHAIN": "local", "GOWORK": "off",
+	}
+	return command(ctx, root, environment, "go", benchmarkArguments()...)
+}
+
+func benchmarkArguments() []string {
+	return []string{
+		"test",
+		"-run=^$",
+		"-bench=^Benchmark(SessionEventIngestionAndScreen|RenderScreen|ScriptSessionReceiveCanceled|ModelSnapshotUpdateAndView|FixedRendererRender)$",
+		"-benchmem",
+		"-benchtime=500x",
+		"-count=5",
+		"-cpu=1",
+		"./tuittest",
+		"./internal/presentation",
+	}
+}
 
 func checkIdentity(root string) error {
 	content, err := os.ReadFile(filepath.Join(root, "go.mod")) // #nosec G304 -- root is repository-owned.

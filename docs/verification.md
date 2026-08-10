@@ -19,6 +19,8 @@ not an older `go` that may appear first on `PATH`.
 
 - `make fast` validates repository identity and runs shuffled tests.
 - `make check` adds formatting, module/vendor consistency, vet, and shuffled tests.
+- `make benchmark` runs the five adopted deterministic runtime benchmarks as
+  five fixed 500-iteration, single-CPU samples with the offline vendor graph.
 - `make verify` adds lint, NilAway, gosec, govulncheck, race tests, coverage, and
   vendor-offline tests/builds, including the annotation tool smoke path, real
   pinned Spice compiler fixtures for alias acceptance and invalid result types,
@@ -54,5 +56,5 @@ The repository-owned verifier is cross-platform. `make fast`, `make check`, and
 hidden downloads. `make fmt` is the only target that rewrites Go source.
 
 See [Runtime benchmarks](benchmarks.md) for the deterministic, offline,
-threshold-free session and presentation baselines that supplement these
-correctness gates.
+threshold-free session and presentation baselines produced by the
+repository-owned benchmark gate.
