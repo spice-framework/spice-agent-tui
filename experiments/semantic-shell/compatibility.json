@@ -11,6 +11,34 @@
     "go_mod_sum": "h1:ZbrQXPLB1QWPuSa8fW/PsUu/LeAhFjKF4VyEL3LyrzI=",
     "origin_commit": "0e6cfb1a58b8bb2cf711fd36dfa66a8cd4e9867f"
   },
+  "conformance_dependency": {
+    "module": "github.com/spice-framework/spice-agent",
+    "version": "v0.1.0-preview.5.0.20260810055539-b205307d3b5f",
+    "sum": "h1:QveBVnwI0IBh/vxAfJpsvX6ktCH/PXAOF9+CXW7QTAs=",
+    "go_mod_sum": "h1:pbhYOeNgn4pCIhEmcdbjnFjJijY4ZSLM8ZHxaF2dxz0=",
+    "origin_commit": "b205307d3b5fb262401c77d1af902b1ce926d49a"
+  },
+  "engine_protocol_contract": {
+    "schema": "spice.agent.engine.compatibility/v1alpha1",
+    "profiles": [
+      {
+        "name": "previous-semantics",
+        "version": "1.2.0",
+        "initialization": "legacy"
+      },
+      {
+        "name": "current",
+        "version": "1.3.0",
+        "initialization": "exact-replay"
+      }
+    ],
+    "platforms": [
+      "linux/amd64",
+      "windows/amd64"
+    ],
+    "transport": "real-local-ipc",
+    "released_binary_matrix": "not-claimed"
+  },
   "public_seams": [
     "Intent",
     "Session",

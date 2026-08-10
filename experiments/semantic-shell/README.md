@@ -10,6 +10,12 @@ Lines record for every accepted semantic view, command result, or fixed error.
 It depends only on the Go standard library and
 `github.com/spice-framework/spice-agent-tui v0.1.0-preview.1`.
 
+The removable conformance test package separately pins Agent commit
+`b205307d3b5fb262401c77d1af902b1ce926d49a`. On Linux and Windows it
+source-builds exact legacy-1.2 and current-1.3 peers, connects over private
+authenticated local IPC, and drives this unchanged JSONL shell. The adapter is
+not imported by the shell package and is not a production transport.
+
 ## Commands
 
 | Input | Public intent |
@@ -29,6 +35,9 @@ bounded payload. Semantic view revisions must also increase strictly.
 The shell owns neither a daemon nor a network connection. Its caller supplies
 the `Session`, input, and output and retains transport ownership. See
 [`SECURITY.md`](SECURITY.md) for the threat boundary and deletion plan.
+
+The compatibility matrix is source-to-source evidence. It invokes no prior
+released binary and therefore makes no N/N-1 binary compatibility claim.
 
 ## Verification
 

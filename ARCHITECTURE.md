@@ -59,6 +59,12 @@ without importing Bubble Tea or terminal plugins. It is a removable Phase 7
 stress prototype, not another production presentation stack; its exact evidence
 and deletion boundary are documented in
 [`docs/semantic-shell-experiment.md`](docs/semantic-shell-experiment.md).
+Its conformance-only adapter pins the exact Agent source commit that defines
+the engine 1.2/1.3 compatibility matrix. Linux and Windows tests launch two
+source-built child peers over current-user local IPC and drive the unchanged
+JSONL submit/respond/cancel path through public Agent client contracts. This
+does not give the TUI a transport, change the root `compatibility.json` null
+client selection, or establish released-binary N/N-1 compatibility.
 
 ## Presentation
 

@@ -14,6 +14,13 @@ store.
   UI code, transport handle, or plugin object.
 - The shell performs no network access and discovers no ambient service.
 
+The conformance test launches only its own exact source-built test executable.
+It passes a random endpoint credential through private stdin, uses a
+current-user Unix socket or Windows named pipe, rejects unauthenticated RPCs,
+bounds child readiness and shutdown, and verifies Unix endpoint removal. It
+never listens on TCP and is excluded from product composition. The Agent
+dependency exists solely in this removable evidence module.
+
 Command text and semantic state are intentionally visible in JSONL output; the
 caller must treat that stream according to the sensitivity of its session.
 This experiment does not claim to redact user-authored prompts or model output.

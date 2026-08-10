@@ -93,12 +93,15 @@ runs analysis offline after the explicit, source-preserving
 
 The removable Phase 7 module at `experiments/semantic-shell` directly pins the
 published `spice-agent-tui v0.1.0-preview.1` module with no replacement. It
-imports only the public root Session/value package and therefore selects a
-strict subset of this reviewed product graph; notably it does not select or
-import Bubble Tea. Its own checksum file, vendor tree, compatibility manifest,
-and [dependency review](../experiments/semantic-shell/DEPENDENCIES.md) are
-verified from the repository root. The experiment performs no runtime network
-or dependency discovery.
+imports only the public root Session/value package in its shell. A removable
+conformance package additionally pins Agent commit `b205307d...` and its public
+gRPC/local-IPC client contracts; this selects gRPC, Protobuf, go-winio, and the
+reviewed `x/net`, `x/sys`, and `x/text` transitive graph. It still does not
+select or import Bubble Tea. Its checksum file, vendor tree, compatibility
+manifest, and [dependency review](../experiments/semantic-shell/DEPENDENCIES.md)
+are verified from the repository root. Product execution performs no runtime
+network or dependency discovery; compatibility tests use only private local
+IPC.
 
 ## Verification tools
 

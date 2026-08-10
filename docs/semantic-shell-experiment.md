@@ -11,6 +11,15 @@ and `Intent` values. The implementation is a standard-library line shell and
 deterministic JSONL projector. It has no Bubble Tea, terminal-plugin, daemon,
 transport, or network dependency.
 
+A separate conformance-only adapter pins Agent commit
+`b205307d3b5fb262401c77d1af902b1ce926d49a` through its exact pseudo-version.
+On Linux and Windows the test binary launches independent 1.2-capped legacy and
+current 1.3 exact-replay child peers, authenticates over a private Unix socket
+or Windows named pipe, and drives the unchanged JSONL submit, respond, cancel,
+and quit workflow through Agent's public client and wire validators. The child
+peers are source-built test fixtures. No released daemon or client binary is
+executed, so this is explicitly not N/N-1 binary compatibility evidence.
+
 The proof covers:
 
 - one receive owner, one serial ordinary-operation lane, and a separately
@@ -21,7 +30,9 @@ The proof covers:
 - invalid/stale update rejection, concurrent lane use, and cancel while submit
   is blocked; and
 - an immutable compatibility manifest, committed vendor graph, deterministic
-  benchmarks, and a complete deletion path.
+  benchmarks, and a complete deletion path; and
+- exact legacy-1.2 versus current-1.3 initialization semantics, authenticated
+  real local IPC, mutation delivery, child cleanup, and socket removal.
 
 Repository `fast`, `check`, dependency bootstrap, and `verify` gates enter the
 nested module explicitly. Full verification recreates its vendor tree, runs
