@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "profile": "java-structured",
+  "sourceRoots": [
+    "internal/acceptance/composition",
+    "internal/spicegen"
+  ],
+  "generatedRoots": [
+    "internal/spicegen/compositionproof"
+  ],
+  "buildSelections": [
+    {
+      "name": "linux-amd64-default",
+      "sourceRoots": [
+        "internal/acceptance/composition",
+        "internal/spicegen"
+      ],
+      "goos": "linux",
+      "goarch": "amd64",
+      "cgoEnabled": false,
+      "tags": []
+    },
+    {
+      "name": "windows-amd64-default",
+      "sourceRoots": [
+        "internal/acceptance/composition",
+        "internal/spicegen"
+      ],
+      "goos": "windows",
+      "goarch": "amd64",
+      "cgoEnabled": false,
+      "tags": []
+    }
+  ],
+  "rules": {
+    "onePrimaryTypePerFile": "error",
+    "methodsInPrimaryTypeFile": "error",
+    "fileNameMatchesType": "error",
+    "packageFunctions": "error",
+    "explicitConstructors": "error",
+    "explicitManagedScopes": "error",
+    "banInit": "error",
+    "banMutablePackageState": "error",
+    "privateManagedFields": "error",
+    "moduleOwnership": "off",
+    "routeClassification": "error",
+    "contextFirst": "error",
+    "errorLast": "error",
+    "maxTypeFileLines": 500
+  },
+  "publicRoutes": [],
+  "allowedBoundaryFiles": [
+    "**/doc.go",
+    "**/*_bean.go",
+    "**/*_test.go",
+    "internal/acceptance/composition/application.go",
+    "internal/spicegen/**"
+  ],
+  "packageFunctionExceptions": [
+    {
+      "glob": "**/*_bean.go",
+      "contributionKind": "provider",
+      "maximum": 1,
+      "reason": "Exact Spice provider boundary"
+    },
+    {
+      "glob": "internal/acceptance/composition/application.go",
+      "contributionKind": "application",
+      "maximum": 1,
+      "reason": "Exact generated-composition application marker"
+    },
+    {
+      "glob": "**/*_test.go",
+      "symbolPattern": "^(Test|Benchmark|Fuzz|Example|TestMain)",
+      "reason": "Go testing entrypoint"
+    }
+  ],
+  "packageVariableExceptions": []
+}

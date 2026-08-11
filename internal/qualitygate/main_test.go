@@ -52,6 +52,31 @@ func TestFuzzArgumentsAreDeterministicAndBounded(t *testing.T) {
 	}
 }
 
+func TestSpiceCompositionVerificationRetainsRootModulithBoundary(t *testing.T) {
+	t.Parallel()
+	valid := spiceCompositionVerifyArguments()
+	if err := validateSpiceCompositionVerifyArguments(valid); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name      string
+		arguments []string
+	}{
+		{name: "missing root module", arguments: []string{"tool", spiceTool, "verify", "./internal/acceptance/composition"}},
+		{name: "missing fixture", arguments: []string{"tool", spiceTool, "verify", "."}},
+		{name: "substituted fixture", arguments: []string{"tool", spiceTool, "verify", ".", "./internal/other"}},
+		{name: "profile override", arguments: append(slices.Clone(valid), "--profile=none")},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if err := validateSpiceCompositionVerifyArguments(test.arguments); err == nil ||
+				!strings.Contains(err.Error(), "root Modulith boundary") {
+				t.Fatalf("validateSpiceCompositionVerifyArguments() error = %v", err)
+			}
+		})
+	}
+}
+
 func TestSemanticShellBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
 	t.Parallel()
 	want := []string{
@@ -100,7 +125,7 @@ func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
 
 func TestReleaseWorkflowRequiresExactKeylessBoundary(t *testing.T) {
 	t.Parallel()
-	const immediatePriorWorkflowCommit = "07f898b85e7d1c409b91bf280e47d62921e786b6"
+	const immediatePriorWorkflowCommit = "0fcd43dc8b41fad56c231d0e136ad8c762276ed5"
 	tests := []struct {
 		name     string
 		workflow string
@@ -392,6 +417,8 @@ func TestValidateCompatibility(t *testing.T) {
 		{name: "wrong Go", content: strings.Replace(valid, "1.26.5", "1.26.4", 1), wantErr: "local UI values"},
 		{name: "premature client", content: strings.Replace(valid, `"spice_agent_client":null`, `"spice_agent_client":"v1"`, 1), wantErr: "null client"},
 		{name: "wrong UI values", content: strings.Replace(valid, `"spice_agent_ui_values":"v0.1.0-dev"`, `"spice_agent_ui_values":"v1"`, 1), wantErr: "local UI values"},
+		{name: "stale Spice core", content: strings.Replace(valid, coreVersion, "v0.1.0-preview.2", 1), wantErr: "core/toolchain"},
+		{name: "stale toolchain", content: strings.Replace(valid, toolchainVersion, "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6", 1), wantErr: "core/toolchain"},
 		{name: "wrong Spice core", content: strings.Replace(valid, `"spice_core":"`+coreVersion+`"`, `"spice_core":null`, 1), wantErr: "core/toolchain"},
 		{name: "wrong toolchain", content: strings.Replace(valid, `"spice_toolchain":"`+toolchainVersion+`"`, `"spice_toolchain":null`, 1), wantErr: "core/toolchain"},
 	}
@@ -427,6 +454,7 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
       name: spice-tui-visuals
 `)
 	writeFile(t, root, ".github/workflows/release.yml", validReleaseWorkflow())
+	writeStyleContractFixture(t, root)
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
 		"github.com/golangci/golangci-lint/v2 v2.12.2",
 		"github.com/securego/gosec/v2 v2.28.0",
@@ -434,6 +462,8 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 		"golang.org/x/tools v0.48.0",
 		"golang.org/x/vuln v1.1.4",
 		"mvdan.cc/gofumpt v0.10.0",
+		"\t" + styleTool + "\n",
+		toolchainModule + " " + toolchainVersion,
 	}, "\n"))
 	if err := checkIdentity(root); err != nil {
 		t.Fatalf("checkIdentity() error = %v", err)
@@ -468,10 +498,50 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 		t.Fatalf("checkIdentity(replaced Bubble Tea) error = %v", identityErr)
 	}
 	writeFile(t, root, "go.mod", validMod)
+	writeFile(t, root, "tools/go.mod", strings.Replace(
+		strings.Join([]string{
+			"github.com/golangci/golangci-lint/v2 v2.12.2",
+			"github.com/securego/gosec/v2 v2.28.0",
+			"go.uber.org/nilaway v0.0.0-20260724203407-f4f8ac24c032",
+			"golang.org/x/tools v0.48.0",
+			"golang.org/x/vuln v1.1.4",
+			"mvdan.cc/gofumpt v0.10.0",
+			"\t" + styleTool + "\n",
+			toolchainModule + " " + toolchainVersion,
+		}, "\n"),
+		styleTool,
+		"github.com/spice-framework/toolchain/cmd/other",
+		1,
+	))
+	if err := checkIdentity(root); err == nil || !strings.Contains(err.Error(), "spicestyle") {
+		t.Fatalf("checkIdentity(stale style tool) error = %v", err)
+	}
 	writeFile(t, root, "tools/go.mod", "module missing")
 	if err := checkIdentity(root); err == nil || !strings.Contains(err.Error(), "missing exact pin") {
 		t.Fatalf("checkIdentity() error = %v, want pin diagnostic", err)
 	}
+}
+
+func writeStyleContractFixture(t *testing.T, root string) {
+	t.Helper()
+	source, err := repositoryRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{"CODE_STYLE.md", ".spice/style.json"} {
+		content, readErr := os.ReadFile(filepath.Join(source, filepath.FromSlash(path)))
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		writeFile(t, root, path, string(content))
+	}
+	writeFile(t, root, "internal/acceptance/composition/doc.go", "package composition\n")
+	writeFile(
+		t,
+		root,
+		"internal/spicegen/compositionproof/generated.go",
+		"// Code generated by Spice. DO NOT EDIT.\npackage compositionproof\n",
+	)
 }
 
 func validCompatibilityJSON() string {

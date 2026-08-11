@@ -58,7 +58,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean darkTheme (github.com/spice-framework/spice-agent-tui.Theme, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme): %w", err))
 	}
 	if darkThemeCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme", darkThemeCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme", darkThemeCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean darkTheme (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|16:DefaultDarkTheme): %w", err))
 		}
 	}
@@ -73,7 +73,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean quitKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding): %w", err))
 	}
 	if quitKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding", quitKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding", quitKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean quitKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|18:DefaultQuitBinding): %w", err))
 		}
 	}
@@ -88,7 +88,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean osTerminalIO (github.com/spice-framework/spice-agent-tui.TerminalIO, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO): %w", err))
 	}
 	if osTerminalIOCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO", osTerminalIOCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO", osTerminalIOCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean osTerminalIO (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|19:DefaultOSTerminalIO): %w", err))
 		}
 	}
@@ -103,7 +103,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean cancelKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding): %w", err))
 	}
 	if cancelKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding", cancelKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding", cancelKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean cancelKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultCancelBinding): %w", err))
 		}
 	}
@@ -118,7 +118,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean fixedRenderer (github.com/spice-framework/spice-agent-tui.Renderer, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer): %w", err))
 	}
 	if fixedRendererCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer", fixedRendererCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer", fixedRendererCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean fixedRenderer (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultFixedRenderer): %w", err))
 		}
 	}
@@ -133,7 +133,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean submitKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding): %w", err))
 	}
 	if submitKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding", submitKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding", submitKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean submitKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|20:DefaultSubmitBinding): %w", err))
 		}
 	}
@@ -148,7 +148,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean connectingView (github.com/spice-framework/spice-agent-tui.ViewData, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView): %w", err))
 	}
 	if connectingViewCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView", connectingViewCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView", connectingViewCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean connectingView (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultConnectingView): %w", err))
 		}
 	}
@@ -163,7 +163,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean respondKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding): %w", err))
 	}
 	if respondKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding", respondKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding", respondKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean respondKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultRespondBinding): %w", err))
 		}
 	}
@@ -178,7 +178,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean terminalConfig (github.com/spice-framework/spice-agent-tui.TerminalConfig, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig): %w", err))
 	}
 	if terminalConfigCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig", terminalConfigCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig", terminalConfigCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean terminalConfig (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|21:DefaultTerminalConfig): %w", err))
 		}
 	}
@@ -193,7 +193,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean backspaceKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding): %w", err))
 	}
 	if backspaceKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding", backspaceKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding", backspaceKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean backspaceKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultBackspaceBinding): %w", err))
 		}
 	}
@@ -208,7 +208,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean cursorEndKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding): %w", err))
 	}
 	if cursorEndKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding", cursorEndKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding", cursorEndKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean cursorEndKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|23:DefaultCursorEndBinding): %w", err))
 		}
 	}
@@ -223,7 +223,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean cursorLeftKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding): %w", err))
 	}
 	if cursorLeftKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding", cursorLeftKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding", cursorLeftKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean cursorLeftKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|24:DefaultCursorLeftBinding): %w", err))
 		}
 	}
@@ -238,7 +238,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean cursorRightKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding): %w", err))
 	}
 	if cursorRightKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding", cursorRightKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding", cursorRightKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean cursorRightKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorRightBinding): %w", err))
 		}
 	}
@@ -253,7 +253,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean cursorStartKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding): %w", err))
 	}
 	if cursorStartKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding", cursorStartKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding", cursorStartKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean cursorStartKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultCursorStartBinding): %w", err))
 		}
 	}
@@ -268,7 +268,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean historyNextKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding): %w", err))
 	}
 	if historyNextKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding", historyNextKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding", historyNextKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean historyNextKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|25:DefaultHistoryNextBinding): %w", err))
 		}
 	}
@@ -283,7 +283,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean historyPreviousKeyBinding (github.com/spice-framework/spice-agent-tui.KeyBinding, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding): %w", err))
 	}
 	if historyPreviousKeyBindingCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding", historyPreviousKeyBindingCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding", historyPreviousKeyBindingCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean historyPreviousKeyBinding (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|29:DefaultHistoryPreviousBinding): %w", err))
 		}
 	}
@@ -298,7 +298,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean acceptanceSession (github.com/spice-framework/spice-agent-tui.Session, source spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession): %w", err))
 	}
 	if acceptanceSessionCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession", acceptanceSessionCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition", "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession", acceptanceSessionCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean acceptanceSession (source spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession): %w", err))
 		}
 	}
@@ -313,7 +313,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean terminalShell (github.com/spice-framework/spice-agent-tui.Shell, source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell): %w", err))
 	}
 	if terminalShellCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell", terminalShellCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/autoconfigure", "spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell", terminalShellCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean terminalShell (source spice:symbol:v1|function|56:github.com/spice-framework/spice-agent-tui/autoconfigure|0:|12:DefaultShell): %w", err))
 		}
 	}
@@ -328,7 +328,7 @@ func constructApplicationDependencies(
 		return nil, application.coordinator.Abort(ctx, fmt.Errorf("construct bean bindingOrder (github.com/spice-framework/spice-agent-tui/internal/acceptance/composition.BindingOrder, source spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder): %w", err))
 	}
 	if bindingOrderCleanup != nil {
-		if err := application.coordinator.RegisterModuleCleanup("", "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder", bindingOrderCleanup); err != nil {
+		if err := application.coordinator.RegisterModuleCleanup("spice.unassigned:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition", "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder", bindingOrderCleanup); err != nil {
 			return nil, application.coordinator.Abort(ctx, fmt.Errorf("register cleanup for bean bindingOrder (source spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder): %w", err))
 		}
 	}

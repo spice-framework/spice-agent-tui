@@ -1,5 +1,5 @@
 {
-  "schema": 5,
+  "schema": 6,
   "target": {
     "id": "compositionproof",
     "layout": "generated-package",
@@ -8,9 +8,9 @@
     "output_dir": "internal/spicegen/compositionproof",
     "manifest_path": ".spice/compositionproof.manifest.json"
   },
-  "generator_version": "0.1.0-dev",
+  "generator_version": "v0.1.0-preview.4",
   "go_format_line": "1.26",
-  "input_sha256": "sha256:34985329e23861a895b81e05aa68c9eb80d2e8a51e00a15c03583c9f5f41c3a7",
+  "input_sha256": "sha256:3a9c1fa132fe38eed97fd068d0c109bb2d508eaa87a3887407f492ee2e42fed4",
   "files": [
     {
       "path": "internal/spicegen/compositionproof/sources/autoconfigure/autoconfigure_spice_gen.go",
@@ -299,13 +299,13 @@
     },
     {
       "path": "internal/spicegen/compositionproof/sources/internal_/acceptance/composition/application_spice_gen.go",
-      "sha256": "sha256:374f3b7937b0f43b5a18efd8d5e2c633429db2a09cf138c136b4c281a64117d8",
+      "sha256": "sha256:92ef5e88ba82912e0fce0ae8b5a60e598bffbc4cab9793d03333000f3848cb2e",
       "role": "source-unit",
       "primary_source": {
         "path": "internal/acceptance/composition/application.go",
-        "line": 16,
+        "line": 14,
         "column": 4,
-        "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+        "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
       },
       "mappings": [
         {
@@ -313,54 +313,80 @@
           "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof",
           "source": {
             "path": "internal/acceptance/composition/application.go",
-            "line": 40,
+            "line": 14,
             "column": 4,
             "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
           },
           "generated": {
-            "start_line": 16,
+            "start_line": 8,
             "start_column": 4,
-            "end_line": 16,
+            "end_line": 8,
             "end_column": 46
           }
-        },
-        {
-          "kind": "provider-construction",
-          "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession",
-          "source": {
-            "path": "internal/acceptance/composition/application.go",
-            "line": 16,
-            "column": 4,
-            "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
-          },
-          "generated": {
-            "start_line": 19,
-            "start_column": 4,
-            "end_line": 19,
-            "end_column": 39
-          }
-        },
+        }
+      ]
+    },
+    {
+      "path": "internal/spicegen/compositionproof/sources/internal_/acceptance/composition/binding_order_bean_spice_gen.go",
+      "sha256": "sha256:ff166703b5f7fc9ce96c5805b2eeb4f0ac298a5af79660fca2242dc0f77c84ad",
+      "role": "source-unit",
+      "primary_source": {
+        "path": "internal/acceptance/composition/binding_order_bean.go",
+        "line": 9,
+        "column": 4,
+        "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
+      },
+      "mappings": [
         {
           "kind": "provider-construction",
           "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder",
           "source": {
-            "path": "internal/acceptance/composition/application.go",
-            "line": 27,
+            "path": "internal/acceptance/composition/binding_order_bean.go",
+            "line": 9,
             "column": 4,
             "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
           },
           "generated": {
-            "start_line": 26,
+            "start_line": 14,
             "start_column": 4,
-            "end_line": 26,
+            "end_line": 14,
             "end_column": 34
           }
         }
       ]
     },
     {
+      "path": "internal/spicegen/compositionproof/sources/internal_/acceptance/composition/session_bean_spice_gen.go",
+      "sha256": "sha256:01101b6f5cf60e8d49d7530c1a1314c6e8d6efd4cfc7262bdad76030ebbb751a",
+      "role": "source-unit",
+      "primary_source": {
+        "path": "internal/acceptance/composition/session_bean.go",
+        "line": 10,
+        "column": 4,
+        "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+      },
+      "mappings": [
+        {
+          "kind": "provider-construction",
+          "contribution": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession",
+          "source": {
+            "path": "internal/acceptance/composition/session_bean.go",
+            "line": 10,
+            "column": 4,
+            "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+          },
+          "generated": {
+            "start_line": 14,
+            "start_column": 4,
+            "end_line": 14,
+            "end_column": 39
+          }
+        }
+      ]
+    },
+    {
       "path": "internal/spicegen/compositionproof/spice_assembly_gen.go",
-      "sha256": "sha256:eee0b7854d4752fd5bf63ef5853d7b2fa26530d525c6ee3cf66269392ba2e507",
+      "sha256": "sha256:3b2e0b32679f8ba0766b7828a7cc4a11026fb95557cc0b326acdf11df12930cc",
       "role": "target-assembly",
       "related_sources": [
         {
@@ -467,32 +493,32 @@
         },
         {
           "path": "internal/acceptance/composition/application.go",
-          "line": 16,
+          "line": 14,
           "column": 4,
-          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
         },
         {
-          "path": "internal/acceptance/composition/application.go",
-          "line": 27,
+          "path": "internal/acceptance/composition/binding_order_bean.go",
+          "line": 9,
           "column": 4,
           "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
         },
         {
-          "path": "internal/acceptance/composition/application.go",
-          "line": 40,
+          "path": "internal/acceptance/composition/session_bean.go",
+          "line": 10,
           "column": 4,
-          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
         }
       ]
     },
     {
       "path": "internal/spicegen/compositionproof/spice_command_gen.go",
-      "sha256": "sha256:2afaeb2f943191295594a8584a6f2412f3de75279b790db1b9767d7b82d93096",
+      "sha256": "sha256:74dece72b84c550b484f37ab58d01a813d605a58f854e60d209e3220ab6519c0",
       "role": "target-command",
       "related_sources": [
         {
           "path": "internal/acceptance/composition/application.go",
-          "line": 40,
+          "line": 14,
           "column": 4,
           "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
         }
@@ -505,7 +531,7 @@
       "related_sources": [
         {
           "path": "internal/acceptance/composition/application.go",
-          "line": 40,
+          "line": 14,
           "column": 4,
           "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
         }
@@ -620,21 +646,21 @@
         },
         {
           "path": "internal/acceptance/composition/application.go",
-          "line": 16,
+          "line": 14,
           "column": 4,
-          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
         },
         {
-          "path": "internal/acceptance/composition/application.go",
-          "line": 27,
+          "path": "internal/acceptance/composition/binding_order_bean.go",
+          "line": 9,
           "column": 4,
           "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
         },
         {
-          "path": "internal/acceptance/composition/application.go",
-          "line": 40,
+          "path": "internal/acceptance/composition/session_bean.go",
+          "line": 10,
           "column": 4,
-          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
         }
       ]
     },
@@ -645,7 +671,7 @@
       "related_sources": [
         {
           "path": "internal/acceptance/composition/application.go",
-          "line": 40,
+          "line": 14,
           "column": 4,
           "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
         }
@@ -653,7 +679,7 @@
     },
     {
       "path": "internal/spicegen/compositionproof/spice_providers_gen.go",
-      "sha256": "sha256:fecf79c0cd4f0782e8d323216453452efe59ad17fce252b5982562b72adc8be2",
+      "sha256": "sha256:2d2943b1c0c254bce05c7c7f149e237d482df807046639b4f99b2aaa1ddfdf1a",
       "role": "target-providers",
       "related_sources": [
         {
@@ -760,21 +786,21 @@
         },
         {
           "path": "internal/acceptance/composition/application.go",
-          "line": 16,
+          "line": 14,
           "column": 4,
-          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
         },
         {
-          "path": "internal/acceptance/composition/application.go",
-          "line": 27,
+          "path": "internal/acceptance/composition/binding_order_bean.go",
+          "line": 9,
           "column": 4,
           "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|15:NewBindingOrder"
         },
         {
-          "path": "internal/acceptance/composition/application.go",
-          "line": 40,
+          "path": "internal/acceptance/composition/session_bean.go",
+          "line": 10,
           "column": 4,
-          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|16:CompositionProof"
+          "symbol": "spice:symbol:v1|function|74:github.com/spice-framework/spice-agent-tui/internal/acceptance/composition|0:|10:NewSession"
         }
       ]
     }

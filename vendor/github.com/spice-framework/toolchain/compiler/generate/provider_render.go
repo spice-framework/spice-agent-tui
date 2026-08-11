@@ -9,6 +9,7 @@ import (
 	"github.com/spice-framework/spice/annotation/sdk"
 	"github.com/spice-framework/toolchain/compiler/configuration"
 	compilerevent "github.com/spice-framework/toolchain/compiler/event"
+	compilerpolicy "github.com/spice-framework/toolchain/compiler/policy"
 	"github.com/spice-framework/toolchain/compiler/provider"
 )
 
@@ -23,10 +24,14 @@ func writeProviders(
 	providerVariables map[string]string,
 	events []compilerevent.Topic,
 	adapters map[string]providerSourceAdapter,
+	policies []compilerpolicy.Service,
+	exposedVariables map[string]string,
+	features commandFeatures,
 ) error {
 	configByProvider := configurationProviderIndex(configTypes)
 	eventByProvider := eventProviderIndex(events)
 	overrideFields := overrideFieldIndex(componentFields)
+	policyByProvider := servicePolicyIndex(policies)
 	for _, item := range providers {
 		variable := providerVariables[item.SymbolID]
 		if item.Scope != sdk.BeanScopeSingleton {
@@ -63,7 +68,7 @@ func writeProviders(
 				item,
 				variable,
 				dependencies[item.SymbolID],
-				providerModules[item.SymbolID],
+				effectiveProviderModule(item, providerModules),
 				adapter,
 				overrideFields[item.SymbolID],
 				aliases,
@@ -81,7 +86,7 @@ func writeProviders(
 				item,
 				variable,
 				dependencies[item.SymbolID],
-				providerModules[item.SymbolID],
+				effectiveProviderModule(item, providerModules),
 				adapter,
 				overrideFields[item.SymbolID],
 				aliases,
@@ -122,8 +127,21 @@ func writeProviders(
 			); err != nil {
 				return err
 			}
+		case provider.SourceLogging:
+			fmt.Fprintf(source, "\t%s := application.logger\n", variable)
+			fmt.Fprintf(source, "\t_ = %s\n", variable)
 		default:
 			return fmt.Errorf("provider %s has unsupported source %q", item.SymbolID, item.Source)
+		}
+		if service, found := policyByProvider[item.SymbolID]; found {
+			writeServicePolicyConstruction(
+				source,
+				service,
+				variable,
+				exposedVariables[item.SymbolID],
+				providerVariables,
+				features,
+			)
 		}
 	}
 	return nil

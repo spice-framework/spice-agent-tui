@@ -27,14 +27,15 @@ const (
 	modulePath                   = "github.com/spice-framework/spice-agent-tui"
 	annotationTool               = modulePath + "/cmd/spice-agent-tui-annotations"
 	coreModule                   = "github.com/spice-framework/spice"
-	coreVersion                  = "v0.1.0-preview.2"
+	coreVersion                  = "v0.1.0-preview.4"
 	toolchainModule              = "github.com/spice-framework/toolchain"
-	toolchainVersion             = "v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6"
+	toolchainVersion             = "v0.1.0-preview.4"
 	spiceTool                    = toolchainModule + "/cmd/spice"
 	coreAnnotationTool           = toolchainModule + "/cmd/spice-annotation-core"
+	styleTool                    = toolchainModule + "/cmd/spicestyle"
 	minimumCoverage              = 85.0
 	minimumSemanticShellCoverage = 85.0
-	releaseWorkflowCommit        = "0fcd43dc8b41fad56c231d0e136ad8c762276ed5"
+	releaseWorkflowCommit        = "a56c451168aae0f2b3075782156d204d75fb7f69"
 	uploadArtifactCommit         = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
 	requiredGitAttributes        = "* text=auto eol=lf\n*.pb -text\n*.png -text\n" +
 		"/tuittest/testdata/*.plain.golden whitespace=-blank-at-eol\n" +
@@ -84,6 +85,7 @@ func run(ctx context.Context, root, mode string) error {
 	formatting := step{"formatting", func() error { return format(ctx, root, false) }}
 	modules := step{"module and vendor", func() error { return checkModule(ctx, root) }}
 	composition := step{"Spice composition", func() error { return checkSpiceComposition(ctx, root) }}
+	style := step{"Spice application style", func() error { return checkStyle(ctx, root) }}
 	vet := step{"go vet", func() error { return command(ctx, root, nil, "go", "vet", "./...") }}
 	test := step{"shuffled tests", func() error { return tests(ctx, root, false) }}
 	semanticShell := step{"semantic shell experiment", func() error {
@@ -97,7 +99,7 @@ func run(ctx context.Context, root, mode string) error {
 		case "fast":
 			steps = []step{identity, test, semanticShell}
 		case "check":
-			steps = []step{identity, formatting, modules, composition, vet, test, semanticShell}
+			steps = []step{identity, formatting, modules, composition, style, vet, test, semanticShell}
 		case "fmt":
 			steps = []step{identity, {"formatting write", func() error { return format(ctx, root, true) }}}
 		case "benchmark":
@@ -108,7 +110,7 @@ func run(ctx context.Context, root, mode string) error {
 			}
 		case "verify":
 			steps = []step{
-				identity, formatting, modules, composition, vet,
+				identity, formatting, modules, composition, style, vet,
 				{"lint and nil safety", func() error { return lint(ctx, root) }},
 				{"security", func() error { return security(ctx, root) }},
 				test,
@@ -164,13 +166,35 @@ func checkSpiceComposition(ctx context.Context, root string) error {
 		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOTOOLCHAIN": "local", "GOWORK": "off",
 	}
 	const fixture = "./internal/acceptance/composition"
-	if err := command(ctx, root, environment, "go", "tool", spiceTool, "verify", fixture); err != nil {
+	arguments := spiceCompositionVerifyArguments()
+	if err := validateSpiceCompositionVerifyArguments(arguments); err != nil {
+		return err
+	}
+	if err := command(ctx, root, environment, "go", arguments...); err != nil {
 		return err
 	}
 	return command(
 		ctx, root, environment, "go", "tool", spiceTool,
 		"generate", "--target", "compositionproof", "--check", fixture,
 	)
+}
+
+func spiceCompositionVerifyArguments() []string {
+	return []string{
+		"tool", spiceTool, "verify", ".", "./internal/acceptance/composition",
+	}
+}
+
+func validateSpiceCompositionVerifyArguments(arguments []string) error {
+	want := spiceCompositionVerifyArguments()
+	if !slices.Equal(arguments, want) {
+		return fmt.Errorf(
+			"spice composition verification must load the root Modulith boundary and exact fixture: got %q, want %q",
+			arguments,
+			want,
+		)
+	}
+	return nil
 }
 
 func networkAllowed(mode string) bool { return mode == "tools-bootstrap" }
@@ -251,6 +275,9 @@ func checkIdentity(root string) error {
 		return err
 	}
 	if err := validateToolPins(filepath.Join(root, "tools", "go.mod")); err != nil {
+		return err
+	}
+	if err := checkStyleContract(root); err != nil {
 		return err
 	}
 	if err := checkRepositoryPortability(root); err != nil {
@@ -449,6 +476,8 @@ func validateToolPins(path string) error {
 		"golang.org/x/tools v0.48.0",
 		"golang.org/x/vuln v1.1.4",
 		"mvdan.cc/gofumpt v0.10.0",
+		"\t" + styleTool + "\n",
+		toolchainModule + " " + toolchainVersion,
 	} {
 		if !bytes.Contains(content, []byte(pin)) {
 			return fmt.Errorf("tools module is missing exact pin %s", pin)

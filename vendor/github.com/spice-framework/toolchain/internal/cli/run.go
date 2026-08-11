@@ -2,7 +2,7 @@
 
 // Package cli implements the Spice command-line interface.
 //
-// @Module(allowedDependencies=["github.com/spice-framework/toolchain/compiler::annotationhost", "github.com/spice-framework/toolchain/compiler::annotationimport", "github.com/spice-framework/toolchain/compiler::annotationinstall", "github.com/spice-framework/toolchain/compiler::application", "github.com/spice-framework/toolchain/compiler::descriptor", "github.com/spice-framework/toolchain/compiler::diagnostic", "github.com/spice-framework/toolchain/compiler::diagnostic-adapt", "github.com/spice-framework/toolchain/compiler::generate", "github.com/spice-framework/toolchain/compiler::load", "github.com/spice-framework/toolchain/compiler::modulith", "github.com/spice-framework/toolchain/compiler::resolve", "github.com/spice-framework/toolchain/compiler::service", "github.com/spice-framework/toolchain/compiler::starter", "github.com/spice-framework/toolchain/internal/devloop", "github.com/spice-framework/toolchain/internal/genfs", "github.com/spice-framework/toolchain/internal/lsp", "github.com/spice-framework/toolchain/internal/scaffold"])
+// @Module(allowedDependencies=["github.com/spice-framework/toolchain/compiler::annotationhost", "github.com/spice-framework/toolchain/compiler::annotationimport", "github.com/spice-framework/toolchain/compiler::annotationinstall", "github.com/spice-framework/toolchain/compiler::application", "github.com/spice-framework/toolchain/compiler::descriptor", "github.com/spice-framework/toolchain/compiler::diagnostic", "github.com/spice-framework/toolchain/compiler::diagnostic-adapt", "github.com/spice-framework/toolchain/compiler::generate", "github.com/spice-framework/toolchain/compiler::load", "github.com/spice-framework/toolchain/compiler::modulith", "github.com/spice-framework/toolchain/compiler::resolve", "github.com/spice-framework/toolchain/compiler::service", "github.com/spice-framework/toolchain/compiler::starter", "github.com/spice-framework/toolchain/compiler::style", "github.com/spice-framework/toolchain/internal/devloop", "github.com/spice-framework/toolchain/internal/genfs", "github.com/spice-framework/toolchain/internal/lsp", "github.com/spice-framework/toolchain/internal/scaffold"])
 package cli
 
 import (
@@ -19,10 +19,6 @@ import (
 	"github.com/spice-framework/toolchain/compiler/load"
 	"github.com/spice-framework/toolchain/compiler/resolve"
 )
-
-// Version is the version reported by the Spice CLI. Release builds replace the
-// development value through Go's link-time string-variable mechanism.
-var Version = "0.1.0-dev"
 
 const legacyStarterSelectionPath = ".spice/starters.json"
 
@@ -101,7 +97,7 @@ func NewVersionHandler(runtime *Runtime) (Handler, error) {
 		runtime,
 		[]string{"version", "--version"},
 		func(_ *Runtime, invocation Invocation) int {
-			return versionCommand(invocation.Stdout)
+			return versionCommand(invocation.Stdout, invocation.Stderr)
 		},
 	)
 }
@@ -113,8 +109,11 @@ func helpCommand(stdout io.Writer) int {
 	return 0
 }
 
-func versionCommand(stdout io.Writer) int {
-	if err := writef(stdout, "spice %s\n", Version); err != nil {
+func versionCommand(stdout, stderr io.Writer) int {
+	if err := writeVersionIdentity(stdout, Version, Commit); err != nil {
+		if writeErr := writef(stderr, "Spice version identity is invalid: %v\n", err); writeErr != nil {
+			return 1
+		}
 		return 1
 	}
 	return 0
@@ -294,9 +293,11 @@ func printHelp(writer io.Writer) error {
 
 Usage:
   spice version
-  spice new --module path [--directory path] [--spice-version version] [--toolchain-version version] [--replace path] [--toolchain-replace path]
+  spice init --module path [--profile=java-structured] [--directory path] [--spice-version version] [--toolchain-version version] [--replace path] [--toolchain-replace path]
+  spice new (module|service|repository|controller|component|enum) name [--profile=java-structured] [--directory path] [--package name]
+  spice new --module path [application-init-option ...]
   spice add [--tool] [--apply] [--directory path] package@version
-  spice verify [--format text|json] [package-pattern ...]
+  spice verify [--format text|json] [--profile java-structured | --style path] [package-pattern ...]
   spice annotations [package-pattern ...]
   spice annotations list [package-pattern ...]
   spice annotations doctor [package-pattern ...]
@@ -312,7 +313,8 @@ Usage:
 
 Commands:
   version      Print the Spice version.
-  new          Create a valid-Go application without downloading dependencies.
+  init         Create a valid-Go application without downloading dependencies.
+  new          Create a typed declaration; the original application form remains supported.
   add          Preview or apply exact standard Go module-file changes.
   verify       Load, resolve, and validate Spice annotations for Go packages.
   annotations  List occurrences, inspect descriptors, or verify annotation tools.

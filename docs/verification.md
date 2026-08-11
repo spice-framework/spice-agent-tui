@@ -21,7 +21,8 @@ not an older `go` that may appear first on `PATH`.
 - `make fast` validates repository identity and runs shuffled root and
   semantic-shell tests.
 - `make check` adds formatting, module/vendor consistency, vet, and shuffled
-  tests, including a byte-current nested experiment vendor proof.
+  tests, including the exact schema-2 application-style boundary and a
+  byte-current nested experiment vendor proof.
 - `make benchmark` runs the six adopted deterministic runtime benchmarks and
   two semantic-shell experiment benchmarks as five fixed 500-iteration,
   single-CPU samples with their offline vendor graphs.
@@ -31,7 +32,13 @@ not an older `go` that may appear first on `PATH`.
   with a single worker,
   including the annotation tool smoke path, real
   pinned Spice compiler fixtures for alias acceptance and invalid result types,
-  and byte-current generated public auto-configuration composition.
+  byte-current generated public auto-configuration composition, and the pinned
+  Toolchain preview4 `spicestyle` verifier over only the composition fixture and
+  its exact generated ownership root.
+  All applicable style rules are errors. `moduleOwnership` alone is documented
+  as inapplicable because schema-2 roots cannot select `.`, and the independent
+  composition command always loads both root and fixture to retain the exact
+  Modulith dependency proof.
   Generated `internal/spicegen` packages remain compilation and execution
   inputs, but are excluded from the handwritten-product coverage denominator.
   Presentation acceptance includes fixed light/dark goldens at normal, compact
@@ -59,7 +66,7 @@ not an older `go` that may appear first on `PATH`.
 Repository identity also validates `.github/workflows/release.yml` as a
 single-job, secret-free caller of the organization keyless Go-module release
 workflow at exact audited commit
-`0fcd43dc8b41fad56c231d0e136ad8c762276ed5`. The caller must deny permissions
+`a56c451168aae0f2b3075782156d204d75fb7f69`. The caller must deny permissions
 at the workflow level and may grant only `contents`, `id-token`,
 `attestations`, and `artifact-metadata` writes to the reusable release job.
 Extra permissions, local steps, additional jobs, legacy workflows, module

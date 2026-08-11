@@ -34,6 +34,7 @@ import (
 	compilerevent "github.com/spice-framework/toolchain/compiler/event"
 	compilerlifecycle "github.com/spice-framework/toolchain/compiler/lifecycle"
 	"github.com/spice-framework/toolchain/compiler/load"
+	compilerpolicy "github.com/spice-framework/toolchain/compiler/policy"
 	"github.com/spice-framework/toolchain/compiler/provider"
 	compilerschedule "github.com/spice-framework/toolchain/compiler/schedule"
 	"github.com/spice-framework/toolchain/compiler/targetid"
@@ -42,10 +43,10 @@ import (
 
 const (
 	// SchemaVersion is the current generated ownership manifest schema.
-	SchemaVersion = 5
+	SchemaVersion = 6
 	// GeneratorVersion is recorded in manifests to make generator compatibility
 	// explicit during freshness checks.
-	GeneratorVersion = "0.1.0-dev"
+	GeneratorVersion = "v0.1.0-preview.4"
 	// GoFormatLine is the supported Go formatter compatibility line.
 	GoFormatLine = "1.26"
 	// AnalysisBuildTag excludes committed generated source while Spice analyzes
@@ -71,8 +72,10 @@ const (
 	eventPath         = "github.com/spice-framework/spice/event"
 	interceptPath     = "github.com/spice-framework/spice/intercept"
 	lifecyclePath     = "github.com/spice-framework/spice/lifecycle"
+	loggingPath       = "github.com/spice-framework/spice/logging"
 	managementPath    = "github.com/spice-framework/spice/management"
 	observabilityPath = "github.com/spice-framework/spice/observability"
+	retryPath         = "github.com/spice-framework/spice/retry"
 	schedulePath      = "github.com/spice-framework/spice/schedule"
 	securityPath      = "github.com/spice-framework/spice/security"
 	viewPath          = "github.com/spice-framework/spice/view"
@@ -80,6 +83,10 @@ const (
 
 	shutdownConfigurationKey = "spice.shutdown-timeout"
 	asyncConcurrencyKey      = "spice.async.max-concurrency"
+	loggingFormatKey         = "spice.logging.format"
+	loggingLevelKey          = "spice.logging.level"
+	loggingLevelsKey         = "spice.logging.levels"
+	loggingAddSourceKey      = "spice.logging.add-source"
 )
 
 var targetIDPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
@@ -553,6 +560,7 @@ func renderTargetFiles(
 	controllers := model.Controllers()
 	jobs := model.Jobs()
 	asyncTasks := model.AsyncTasks()
+	policies := model.Policies()
 	events := model.Events()
 	transactions := model.Transactions()
 	caches := model.Caches()
@@ -563,16 +571,23 @@ func renderTargetFiles(
 	features.transactions = len(transactions) != 0
 	features.events = len(events) != 0
 	features.caching = len(caches) != 0
+	features.methodPolicies = len(policies) != 0
+	features.authorization = features.authorization || policiesUseAuthorization(policies)
+	features.transactions = features.transactions || policiesUseTransactions(policies)
+	features.caching = features.caching || policiesUseCache(policies)
+	features.retry = policiesUseRetry(policies)
+	features.methodObservation = policiesUseObservation(policies)
 	features.requestScope = hasProviderScope(
 		providers,
 		sdk.BeanScopeRequest,
 	)
-	aliases := importAliases(
+	aliases := importAliasesWithPolicies(
 		providers,
 		controllers,
 		asyncTasks,
 		events,
 		caches,
+		policies,
 		features,
 	)
 	providerAdapters, adapterErr := providerSourceAdapters(
@@ -592,15 +607,7 @@ func renderTargetFiles(
 		return nil, adapterErr
 	}
 	providerModules := providerModuleIDs(model, providers)
-	dependencies, err := dependencyVariables(
-		model,
-		providers,
-		aliases,
-	)
-	if err != nil {
-		return nil, err
-	}
-	componentFields := generatedComponentFields(providers)
+	componentFields := generatedComponentFields(providers, policies)
 	routeInterceptorFields := generatedRouteInterceptorFields(controllers)
 	if hasOverridableProviders(componentFields) {
 		aliases[beanPath] = "spicebean"
@@ -618,6 +625,14 @@ func renderTargetFiles(
 		providers,
 		events,
 	)
+	for _, service := range policies {
+		for _, method := range service.Methods() {
+			providerOrigins = mergeSourceOrigins(
+				providerOrigins,
+				sourceOriginsForSymbolFamilies(modelOrigins, method.MethodID),
+			)
+		}
+	}
 	configurationOrigins := configurationSourceOrigins(
 		modelOrigins,
 		configTypes,
@@ -646,11 +661,27 @@ func renderTargetFiles(
 	writeConfigurationAPI(
 		&configurationSource,
 		configTypes,
-		caches,
+		append(caches, serviceCacheBoundaries(policies)...),
 		features.asynchronous,
+		features.logging,
 	)
 
 	localProviderVariables, dependencyProviderVariables := targetProviderVariables(providers)
+	localExposedVariables, dependencyExposedVariables := policyExposureVariables(
+		providers,
+		policies,
+		localProviderVariables,
+		dependencyProviderVariables,
+	)
+	dependencies, err := dependencyVariablesWithExposure(
+		model,
+		providers,
+		aliases,
+		localExposedVariables,
+	)
+	if err != nil {
+		return nil, err
+	}
 	providerSource, providerErr := renderProvidersTargetSource(
 		providers,
 		componentFields,
@@ -659,7 +690,10 @@ func renderTargetFiles(
 		dependencies,
 		providerModules,
 		localProviderVariables,
+		localExposedVariables,
 		events,
+		policies,
+		features,
 		providerAdapters,
 	)
 	if providerErr != nil {
@@ -667,12 +701,24 @@ func renderTargetFiles(
 	}
 
 	hasLifecycleFeatures := len(model.Components()) != 0 || len(jobs) != 0
+	generatedLoggingScopes := loggingScopes(
+		model,
+		applicationTarget,
+		providers,
+		providerModules,
+	)
+	selectedLoggerVariable := selectedApplicationLoggerVariable(
+		providers,
+		localProviderVariables,
+	)
 	assembly := renderAssemblyTargetSource(
 		target,
 		features,
 		componentFields,
-		dependencyProviderVariables,
+		dependencyExposedVariables,
 		hasLifecycleFeatures,
+		generatedLoggingScopes,
+		selectedLoggerVariable,
 	)
 
 	featureSource := renderFeaturesTargetSource(
@@ -706,6 +752,7 @@ func renderTargetFiles(
 	var lifecycleSource bytes.Buffer
 	writeLifecycleMethods(&lifecycleSource)
 	writeComponentsMethod(&lifecycleSource)
+	writeLoggingAccessors(&lifecycleSource, features)
 	writeAsyncApplicationMethods(&lifecycleSource, asyncTasks, aliases)
 	if features.hasMux {
 		writeHandlerMethod(&lifecycleSource)
@@ -872,7 +919,10 @@ func renderProvidersTargetSource(
 	dependencies map[string][]string,
 	providerModules map[string]string,
 	providerVariables map[string]string,
+	exposedVariables map[string]string,
 	events []compilerevent.Topic,
+	policies []compilerpolicy.Service,
+	features commandFeatures,
 	adapters map[string]providerSourceAdapter,
 ) ([]byte, error) {
 	var source bytes.Buffer
@@ -881,12 +931,18 @@ func renderProvidersTargetSource(
 		providers,
 		aliases,
 		providerVariables,
+		exposedVariables,
+		policies,
 	)
+	writeServicePolicyDeclarations(&source, policies, aliases)
 	source.WriteString("func constructApplicationDependencies(\n")
 	source.WriteString("\tctx context.Context,\n")
 	source.WriteString("\tapplication *Application,\n")
 	source.WriteString("\toptions ApplicationOptions,\n")
 	source.WriteString("\tconfigurationSnapshot spiceconfig.Snapshot,\n")
+	if features.authorization {
+		source.WriteString("\tauthorizer *spicesecurity.Authorizer,\n")
+	}
 	source.WriteString(") (*applicationDependencies, error) {\n")
 	source.WriteString("\t_ = ctx\n")
 	source.WriteString("\t_ = application\n")
@@ -903,6 +959,9 @@ func renderProvidersTargetSource(
 		providerVariables,
 		events,
 		adapters,
+		policies,
+		exposedVariables,
+		features,
 	); err != nil {
 		return nil, err
 	}
@@ -910,6 +969,8 @@ func renderProvidersTargetSource(
 		&source,
 		providers,
 		providerVariables,
+		exposedVariables,
+		policies,
 	)
 	source.WriteString("}\n")
 	return source.Bytes(), nil
@@ -921,6 +982,8 @@ func renderAssemblyTargetSource(
 	componentFields []generatedComponentField,
 	providerVariables map[string]string,
 	hasLifecycleFeatures bool,
+	loggingScopes []generatedLoggingScope,
+	selectedLoggerVariable string,
 ) []byte {
 	var source bytes.Buffer
 	source.WriteString("func NewApplication(ctx context.Context, observers ...spicelifecycle.Observer) (*Application, error) {\n")
@@ -933,6 +996,8 @@ func renderAssemblyTargetSource(
 		strconv.Quote("construct application "+target.ID+": context is nil"),
 	)
 	source.WriteString("\tapplication := &Application{coordinator: spicelifecycle.NewCoordinator()}\n")
+	writeConfigurationResolution(&source, target)
+	writeLoggingSetup(&source, features, loggingScopes)
 	writeBootstrapObservers(&source, features)
 	writeAuthorizationSetup(&source, features)
 	source.WriteString("\tfor index, observer := range observers {\n")
@@ -940,12 +1005,16 @@ func renderAssemblyTargetSource(
 	source.WriteString("\t\t\treturn nil, fmt.Errorf(\"register lifecycle observer %d: %w\", index, err)\n")
 	source.WriteString("\t\t}\n")
 	source.WriteString("\t}\n")
-	writeConfigurationResolution(&source, target)
-	source.WriteString("\tdependencies, err := constructApplicationDependencies(ctx, application, options, configurationSnapshot)\n")
+	source.WriteString("\tdependencies, err := constructApplicationDependencies(ctx, application, options, configurationSnapshot")
+	if features.authorization {
+		source.WriteString(", authorizer")
+	}
+	source.WriteString(")\n")
 	source.WriteString("\tif err != nil {\n")
 	source.WriteString("\t\treturn nil, err\n")
 	source.WriteString("\t}\n")
 	source.WriteString("\t_ = dependencies\n")
+	writeSelectedApplicationLogger(&source, selectedLoggerVariable)
 	writeComponentAssignments(
 		&source,
 		componentFields,
@@ -985,11 +1054,15 @@ func renderContractsTargetSource(
 	writeComponentsType(&source, componentFields, aliases)
 	writeBeanOverridesType(&source, componentFields, aliases)
 	writeRouteInterceptorsType(&source, routeInterceptorFields, aliases)
+	writeLoggingOptions(&source, features)
 	source.WriteString("type Application struct {\n")
 	source.WriteString("\tcoordinator *spicelifecycle.Coordinator\n")
 	source.WriteString("\thooks []spicelifecycle.Hook\n")
 	source.WriteString("\tshutdownTimeout time.Duration\n")
 	source.WriteString("\tcomponents Components\n")
+	if features.logging {
+		source.WriteString("\tlogger *spicelogging.Logger\n")
+	}
 	if features.asynchronous {
 		source.WriteString("\tasyncExecutor *spiceasync.Executor\n")
 		writeAsyncApplicationFields(&source, asyncTasks, aliases)
@@ -1261,6 +1334,8 @@ func writeApplicationDependenciesType(
 	providers []provider.Provider,
 	aliases map[string]string,
 	providerVariables map[string]string,
+	exposedVariables map[string]string,
+	policies []compilerpolicy.Service,
 ) {
 	source.WriteString("type applicationDependencies struct {\n")
 	for _, item := range providers {
@@ -1275,6 +1350,14 @@ func writeApplicationDependenciesType(
 			output,
 		)
 	}
+	for _, service := range policies {
+		fmt.Fprintf(
+			source,
+			"\t%s %s\n",
+			exposedVariables[service.Provider.SymbolID],
+			renderedType(service.Interface.Type, aliases),
+		)
+	}
 	source.WriteString("}\n\n")
 }
 
@@ -1282,10 +1365,16 @@ func writeApplicationDependenciesReturn(
 	source *bytes.Buffer,
 	providers []provider.Provider,
 	providerVariables map[string]string,
+	exposedVariables map[string]string,
+	policies []compilerpolicy.Service,
 ) {
 	source.WriteString("\treturn &applicationDependencies{\n")
 	for _, item := range providers {
 		variable := providerVariables[item.SymbolID]
+		fmt.Fprintf(source, "\t\t%s: %s,\n", variable, variable)
+	}
+	for _, service := range policies {
+		variable := exposedVariables[service.Provider.SymbolID]
 		fmt.Fprintf(source, "\t\t%s: %s,\n", variable, variable)
 	}
 	source.WriteString("\t}, nil\n")

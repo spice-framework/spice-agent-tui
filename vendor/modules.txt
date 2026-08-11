@@ -52,7 +52,7 @@ github.com/muesli/cancelreader
 # github.com/rivo/uniseg v0.4.7
 ## explicit; go 1.18
 github.com/rivo/uniseg
-# github.com/spice-framework/spice v0.1.0-preview.2
+# github.com/spice-framework/spice v0.1.0-preview.4
 ## explicit; go 1.26.0
 github.com/spice-framework/spice/annotation
 github.com/spice-framework/spice/annotation/async
@@ -65,6 +65,7 @@ github.com/spice-framework/spice/annotation/lifecycle
 github.com/spice-framework/spice/annotation/management
 github.com/spice-framework/spice/annotation/modulith
 github.com/spice-framework/spice/annotation/observability
+github.com/spice-framework/spice/annotation/retry
 github.com/spice-framework/spice/annotation/schedule
 github.com/spice-framework/spice/annotation/sdk
 github.com/spice-framework/spice/annotation/sdk/protocol
@@ -81,7 +82,7 @@ github.com/spice-framework/spice/security
 github.com/spice-framework/spice/starter
 github.com/spice-framework/spice/validation
 github.com/spice-framework/spice/web
-# github.com/spice-framework/toolchain v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6
+# github.com/spice-framework/toolchain v0.1.0-preview.4
 ## explicit; go 1.26.0
 github.com/spice-framework/toolchain/cmd/spice
 github.com/spice-framework/toolchain/cmd/spice-annotation-core
@@ -99,6 +100,7 @@ github.com/spice-framework/toolchain/compiler/controller
 github.com/spice-framework/toolchain/compiler/descriptor
 github.com/spice-framework/toolchain/compiler/diagnostic
 github.com/spice-framework/toolchain/compiler/diagnostic/adapt
+github.com/spice-framework/toolchain/compiler/enum
 github.com/spice-framework/toolchain/compiler/event
 github.com/spice-framework/toolchain/compiler/generate
 github.com/spice-framework/toolchain/compiler/graph
@@ -106,6 +108,7 @@ github.com/spice-framework/toolchain/compiler/lifecycle
 github.com/spice-framework/toolchain/compiler/load
 github.com/spice-framework/toolchain/compiler/modulith
 github.com/spice-framework/toolchain/compiler/parser
+github.com/spice-framework/toolchain/compiler/policy
 github.com/spice-framework/toolchain/compiler/provider
 github.com/spice-framework/toolchain/compiler/resolve
 github.com/spice-framework/toolchain/compiler/scan
@@ -113,6 +116,7 @@ github.com/spice-framework/toolchain/compiler/schedule
 github.com/spice-framework/toolchain/compiler/service
 github.com/spice-framework/toolchain/compiler/signature
 github.com/spice-framework/toolchain/compiler/starter
+github.com/spice-framework/toolchain/compiler/style
 github.com/spice-framework/toolchain/compiler/targetid
 github.com/spice-framework/toolchain/compiler/transaction
 github.com/spice-framework/toolchain/compiler/validate

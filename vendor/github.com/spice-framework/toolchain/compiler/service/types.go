@@ -21,6 +21,7 @@ import (
 	"github.com/spice-framework/toolchain/compiler/modulith"
 	"github.com/spice-framework/toolchain/compiler/provider"
 	compilerstarter "github.com/spice-framework/toolchain/compiler/starter"
+	compilerstyle "github.com/spice-framework/toolchain/compiler/style"
 )
 
 const (
@@ -96,6 +97,11 @@ type Request struct {
 	Patterns      []string
 	Overlay       map[string]Document
 	Mode          AnalysisMode
+	Profile       compilerstyle.Profile
+	// StyleConfiguration is the shared immutable schema-two policy consumed by
+	// structural and typed validation. Profile remains available for legacy
+	// profile-only callers that do not select configuration enforcement.
+	StyleConfiguration *compilerstyle.Configuration
 	// ContentHash is a caller-owned hash of all relevant workspace and overlay
 	// content. Caching is disabled when it is empty, preventing stale disk
 	// results from being reused without a complete content identity.
@@ -241,6 +247,23 @@ type Configuration struct {
 	Fields      []ConfigurationField
 }
 
+// EnumMember is one declared member of a closed enum.
+type EnumMember struct {
+	Name  string
+	Value string
+}
+
+// Enum is one validated closed enum declaration.
+type Enum struct {
+	SymbolID    string
+	Name        string
+	PackagePath string
+	TypeID      string
+	Underlying  string
+	Location    diagnostic.Location
+	Members     []EnumMember
+}
+
 // AnnotationArgument describes one completion-safe annotation argument.
 type AnnotationArgument struct {
 	Name             string
@@ -356,6 +379,7 @@ type Result struct {
 	moduleGraph    ModuleGraph
 	moduleModel    modulith.Model
 	configurations []Configuration
+	enums          []Enum
 	goInterfaces   GoInterfaceCatalog
 	definitions    []AnnotationDefinition
 	actions        []diagnostic.SuggestedFix
@@ -363,6 +387,7 @@ type Result struct {
 	plan           generate.Plan
 	targetName     string
 	files          int
+	loadedFiles    []string
 	hasPlan        bool
 }
 
@@ -415,6 +440,11 @@ func (result Result) ModuleModel() modulith.Model {
 // Configurations returns deep defensive configuration metadata.
 func (result Result) Configurations() []Configuration {
 	return cloneConfigurations(result.configurations)
+}
+
+// Enums returns deep defensive closed enum metadata.
+func (result Result) Enums() []Enum {
+	return cloneEnums(result.enums)
 }
 
 // GoInterfaces returns the compiler-owned named runtime interface catalog used

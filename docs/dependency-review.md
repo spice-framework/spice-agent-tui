@@ -2,10 +2,13 @@
 
 ## Product graph
 
-### Spice core v0.1.0-preview.2
+### Spice core v0.1.0-preview.4
 
 `github.com/spice-framework/spice` is pinned exactly at
-v0.1.0-preview.2 and is Apache-2.0 licensed. This immutable public preview
+v0.1.0-preview.4 (module sum
+`h1:jfUSUquq9rQN/FMI6zvBEJZYX12ZVeJAQmusvjy/3T8=`, go.mod sum
+`h1:dBZV5UZcbY6pzhfGNtvAwQIJ8YsFna+jf1SAlmukJfk=`) and is Apache-2.0
+licensed. This immutable public preview
 replaces the development pseudo-version and is governed by Spice's protected
 keyless release contract. This module uses its public annotation SDK v1alpha2,
 framed protocol server, starter manifest, lifecycle provider contract metadata,
@@ -23,13 +26,17 @@ requires descriptor decode, protocol framing, starter compatibility,
 contribution wire, vendor-offline, and full generated-compiler compatibility
 review.
 
-### Spice toolchain v0.1.0-preview.1.0.20260806203056-d0b9ac086bd6
+### Spice toolchain v0.1.0-preview.4
 
 `github.com/spice-framework/toolchain` is selected through standard Go `tool`
-directives for the Spice CLI and official core annotation tool. It supplies the
-single `go/types` result-fact producer and real offline acceptance compiler. It
-is a development/tool dependency only: public TUI packages and runtime code do
-not import compiler, CLI, or internal toolchain packages.
+directives for the Spice CLI, official core annotation tool, and through the
+isolated tools module for `spicestyle`. The exact public release has module sum
+`h1:mpHAsOdPSUQTSa2GE891VJg5bXmzML0T2N9c5QU4yJg=` and go.mod sum
+`h1:nezzFkAq9TDdavVL5sYJm2nOKNWAu1p9VTz3XFihgUg=`. It supplies the single
+`go/types` result-fact producer, real offline acceptance compiler, and exact
+schema-2 style analyzer. It is a development/tool dependency only: public TUI
+packages and runtime code do not import compiler, CLI, or internal toolchain
+packages.
 
 The exact pin is intentionally coupled to the core result-facts revision.
 `go.sum` and committed vendor contents provide integrity and offline operation;
@@ -171,7 +178,9 @@ IPC.
 
 The isolated `tools` module pins golangci-lint 2.12.2, gofumpt 0.10.0,
 goimports/x-tools 0.48.0, gosec 2.28.0, govulncheck 1.1.4, and NilAway at
-`f4f8ac24c032`. They are build-time-only dependencies. The explicit bootstrap
+`f4f8ac24c032`, plus Toolchain preview4 `spicestyle`. They are build-time-only
+dependencies. The style tool is restricted to the reviewed schema-2
+composition boundary and runs without network access. The explicit bootstrap
 downloads the complete product and tools graphs through private alternate
 module files, then every ordinary gate runs with `GOPROXY=off`, `GOWORK=off`,
 and the selected exact Go 1.26.5 executable.

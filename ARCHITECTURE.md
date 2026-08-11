@@ -150,6 +150,23 @@ an actual terminal normal exit through the explicit
 Generated Go is not hand-edited. The generic generated `Application.Run` is not
 the terminal runner; the distribution owns that explicit orchestration.
 
+The handwritten composition fixture is the repository's exact application-code
+boundary for the canonical schema-2 `java-structured` profile. Its providers
+declare singleton ownership explicitly. The style source universe also names
+the real `internal/spicegen/compositionproof` generated root so generated
+ownership is verified without treating generated Go as handwritten input.
+This bounded adoption does not mechanically reshape the public runtime, private
+presentation, `tuittest`, auto-configuration, vendored sources, or the nested
+historical experiment.
+
+Toolchain preview4 schema-2 source roots cannot name the Go module-root package
+`.`. Therefore `moduleOwnership` is the sole inapplicable style rule for this
+nested fixture: enabling it would make the legitimate import of the root TUI
+module unknown to the configured selection. The separate Spice composition
+gate always loads both `.` and the fixture, and remains the authoritative
+Modulith proof for that dependency. Every other applicable schema-2 rule stays
+at error severity.
+
 ## Annotation SDK
 
 `annotation/ui` is the named `annotations` interface. Each annotation has one
