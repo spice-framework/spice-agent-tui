@@ -62,9 +62,7 @@ func TestNativeTerminalRendersResizesAndExitsCleanly(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
-	ready, err := terminal.WaitFor(ctx, "native-ready", func(screen tuittest.Screen) bool {
-		return screen.Contains("Spice native terminal ready")
-	})
+	ready, err := terminal.WaitFor(ctx, "native-ready", nativeTerminalReady)
 	if err != nil {
 		t.Fatalf("wait for native terminal readiness: %v\n%s", err, terminalReport(terminal))
 	}
@@ -112,6 +110,48 @@ func TestNativeTerminalRendersResizesAndExitsCleanly(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal(context.Cause(ctx))
 	}
+}
+
+func TestNativeTerminalReadinessWaitsForCompleteControlSequence(t *testing.T) {
+	terminal, err := tuittest.NewVirtualTerminal(tuittest.VirtualTerminalOptions{
+		Width:              80,
+		Height:             24,
+		MaxTranscriptBytes: 1 << 20,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { closeVirtualTerminal(t, terminal) })
+
+	if _, writeErr := terminal.WriteString("\x1b[?1049h\x1b[2J\x1b[HSpice native terminal ready\r\n"); writeErr != nil {
+		t.Fatal(writeErr)
+	}
+	partial, err := terminal.Screen("partial-native-ready")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nativeTerminalReady(partial) {
+		t.Fatal("readiness accepted visible cursor before the complete control sequence")
+	}
+
+	if _, writeErr := terminal.WriteString("\x1b[?25l"); writeErr != nil {
+		t.Fatal(writeErr)
+	}
+	complete, err := terminal.Screen("complete-native-ready")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !nativeTerminalReady(complete) {
+		t.Fatalf("readiness rejected complete terminal state:\n%s", complete.AgentReport())
+	}
+}
+
+func nativeTerminalReady(screen tuittest.Screen) bool {
+	if !screen.Contains("Spice native terminal ready") || !screen.AlternateScreen() {
+		return false
+	}
+	_, _, visible := screen.Cursor()
+	return !visible
 }
 
 func TestNativeTerminalEnvironmentExcludesSecrets(t *testing.T) {
