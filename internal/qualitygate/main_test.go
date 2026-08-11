@@ -42,6 +42,16 @@ func TestBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
 	}
 }
 
+func TestFuzzArgumentsAreDeterministicAndBounded(t *testing.T) {
+	t.Parallel()
+	want := []string{
+		"test", "-run=^$", "-fuzz=^FuzzTraceCanonicalReplay$", "-fuzztime=1s", "-parallel=1", "./tuittest",
+	}
+	if got := fuzzArguments("FuzzTraceCanonicalReplay"); !slices.Equal(got, want) {
+		t.Fatalf("fuzz arguments = %q, want %q", got, want)
+	}
+}
+
 func TestSemanticShellBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
 	t.Parallel()
 	want := []string{
@@ -55,7 +65,7 @@ func TestSemanticShellBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T)
 func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
-	writeFile(t, root, ".gitattributes", "* text=auto eol=lf\n*.pb -text\n*.png -text\n")
+	writeFile(t, root, ".gitattributes", requiredGitAttributes)
 	writeFile(t, root, ".github/workflows/ci.yml", `steps:
   - run: go run ./internal/qualitygate -mode=tools-bootstrap
   - run: go run ./internal/qualitygate -mode=verify
@@ -389,7 +399,7 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	validMod := validIdentityGoMod()
 	writeFile(t, root, "go.mod", validMod)
 	writeFile(t, root, "compatibility.json", validCompatibilityJSON())
-	writeFile(t, root, ".gitattributes", "* text=auto eol=lf\n*.pb -text\n*.png -text\n")
+	writeFile(t, root, ".gitattributes", requiredGitAttributes)
 	writeFile(t, root, ".github/workflows/ci.yml", `steps:
   - run: go run ./internal/qualitygate -mode=tools-bootstrap
   - run: go run ./internal/qualitygate -mode=verify

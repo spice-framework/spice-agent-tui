@@ -1,0 +1,34 @@
+name: lifecycle-ready
+size: 48x12
+cursor: x=2 y=10 visible=true
+alt_screen: true accessible: false revision: 1
+status: [READY] ready for prompts
+prompt: ""
+activity:
+  - connected
+plain:
+Commerce                                        
+Module: orders                                  
+  payments                                      
+Activity                                        
+• connected                                     
+                                                
+                                                
+                                                
+                                                
+                                                
+>                                               
+[READY] ready for prompts  enter submit         
+styled:
+<ESC>[38;2;56;189;248m<ESC>[1mCommerce<ESC>[0m
+<ESC>[38;2;226;232;240m<ESC>[1mModule: <ESC>[0m<ESC>[38;2;226;232;240morders<ESC>[0m
+<ESC>[38;2;226;232;240m  payments<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1mActivity<ESC>[0m
+<ESC>[38;2;226;232;240m• connected<ESC>[0m
+
+
+
+
+
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240m<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1m[READY] ready for prompts<ESC>[0m<ESC>[38;2;148;163;184m  enter submit<ESC>[0m

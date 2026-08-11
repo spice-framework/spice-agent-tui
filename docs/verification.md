@@ -26,7 +26,9 @@ not an older `go` that may appear first on `PATH`.
   two semantic-shell experiment benchmarks as five fixed 500-iteration,
   single-CPU samples with their offline vendor graphs.
 - `make verify` adds lint, NilAway, gosec, govulncheck, race tests, coverage, and
-  vendor-offline tests/builds, including the annotation tool smoke path, real
+  vendor-offline tests/builds. It also runs one second each of the canonical
+  trace replay and VT chunk-boundary fuzz targets with a single worker,
+  including the annotation tool smoke path, real
   pinned Spice compiler fixtures for alias acceptance and invalid result types,
   and byte-current generated public auto-configuration composition.
   Generated `internal/spicegen` packages remain compilation and execution
@@ -40,8 +42,10 @@ not an older `go` that may appear first on `PATH`.
   one-shot operation, late-cancellation result precedence, concurrent Session
   lanes, cancel control-lane availability, tagged-update, facade, Theme snapshot,
   public-facade prompt/submit/cancel/Ctrl-Q terminal interaction,
-  deterministic `tuittest` scripts, grapheme input, injected key maps, command
-  timeout cancellation, exact styled/plain/report goldens, missing-fixture
+  deterministic `tuittest` scripts, strict canonical JSON parsing, independent
+  double replay, per-event full-screen digests and reference invariants,
+  committed lifecycle interaction goldens, grapheme input, injected key maps,
+  command timeout cancellation, exact styled/plain/report goldens, missing-fixture
   refusal, ScriptSession queue/close behavior, and bounded VT cell, cursor,
   alternate-screen, resize, transcript, chunking, and wait behavior, plus a
   real current-test-binary Unix PTY/Windows ConPTY handshake covering TTY

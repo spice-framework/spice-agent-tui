@@ -1,6 +1,9 @@
 package tuittest
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -53,7 +56,7 @@ func (screen Screen) Cursor() (x, y int, visible bool) {
 }
 
 // AlternateScreen reports whether a virtual-terminal capture is using the
-// alternate screen buffer. Semantic model captures always report false.
+// alternate screen buffer or a semantic model requests alternate-screen mode.
 func (screen Screen) AlternateScreen() bool { return screen.altScreen }
 
 // Prompt returns the current editor value.
@@ -73,6 +76,14 @@ func (screen Screen) Revision() uint64 { return screen.revision }
 
 // Accessible reports whether the screen was captured in accessible mode.
 func (screen Screen) Accessible() bool { return screen.accessible }
+
+// Digest returns a SHA-256 digest of the complete observable screen state.
+// The digest includes rendered cells, cursor and alternate-screen state, and
+// all semantic metadata. It is stable across operating systems and runs.
+func (screen Screen) Digest() string {
+	sum := sha256.Sum256(screen.canonicalState())
+	return hex.EncodeToString(sum[:])
+}
 
 // Contains reports whether plain content contains value.
 func (screen Screen) Contains(value string) bool {
@@ -247,6 +258,55 @@ func writeMetaDiff[T comparable](builder *strings.Builder, name string, got, wan
 	if got != want {
 		fmt.Fprintf(builder, "%s: got %#v want %#v\n", name, got, want)
 	}
+}
+
+func (screen Screen) canonicalState() []byte {
+	state := struct {
+		Name          string   `json:"name"`
+		Width         int      `json:"width"`
+		Height        int      `json:"height"`
+		Styled        string   `json:"styled"`
+		Plain         string   `json:"plain"`
+		PlainLines    []string `json:"plain_lines"`
+		CursorX       int      `json:"cursor_x"`
+		CursorY       int      `json:"cursor_y"`
+		CursorVisible bool     `json:"cursor_visible"`
+		AltScreen     bool     `json:"alternate_screen"`
+		Accessible    bool     `json:"accessible"`
+		Prompt        string   `json:"prompt"`
+		Status        string   `json:"status"`
+		StatusLevel   string   `json:"status_level"`
+		Activity      []string `json:"activity"`
+		Revision      uint64   `json:"revision"`
+	}{
+		Name:          screen.name,
+		Width:         screen.width,
+		Height:        screen.height,
+		Styled:        screen.styled,
+		Plain:         screen.plain,
+		PlainLines:    append([]string(nil), screen.plainLines...),
+		CursorX:       screen.cursorX,
+		CursorY:       screen.cursorY,
+		CursorVisible: screen.cursorVisible,
+		AltScreen:     screen.altScreen,
+		Accessible:    screen.accessible,
+		Prompt:        screen.prompt,
+		Status:        screen.status,
+		StatusLevel:   screen.statusLevel,
+		Activity:      append([]string(nil), screen.activity...),
+		Revision:      screen.revision,
+	}
+	if state.Activity == nil {
+		state.Activity = []string{}
+	}
+	if state.PlainLines == nil {
+		state.PlainLines = []string{}
+	}
+	content, err := json.Marshal(state)
+	if err != nil {
+		panic("marshal immutable screen state: " + err.Error())
+	}
+	return content
 }
 
 // CellWidth returns the ANSI display width of one line.

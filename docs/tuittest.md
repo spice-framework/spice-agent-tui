@@ -20,7 +20,9 @@ UI:
 2. **inspectable** (`Screen.AgentReport()` dumps plain + styled + semantics);
 3. **pixel-comparable** (fixed-size frames, golden files, cursor metadata);
 4. **terminal-verifiable** (interpreted VT cells, Unicode width, cursor,
-   alternate screen, resize, bounded raw transcript, and event-driven waits).
+   alternate screen, resize, bounded raw transcript, and event-driven waits);
+5. **replayable** (canonical strict-JSON traces, full-state digests after every
+   event, and two fresh model runs that must match exactly).
 
 ## Quick start
 
@@ -168,6 +170,7 @@ screen.AlternateScreen() // virtual-terminal alternate-buffer state
 screen.Prompt()         // editor value
 screen.StatusLevel()    // ready/error/...
 screen.Activity()       // activity strings
+screen.Digest()         // SHA-256 of every observable cell + semantic field
 screen.AgentReport()    // multi-section dump
 screen.Diff(other)      // mismatch explanation
 ```
@@ -187,6 +190,9 @@ Normal comparison never creates missing fixtures. Set `UPDATE_GOLDEN=1`
 explicitly to create or replace all three artifacts.
 
 Accessible mode emits a dense semantic transcript (no fixed padding, no ANSI).
+The authoritative contract is terminal cells and VT state. Font rasterization,
+OCR, and operating-system screenshots are intentionally not release gates in
+this layer.
 
 ## Scenario helpers
 
@@ -200,6 +206,44 @@ err := driver.RunScenario(
 )
 ```
 
+## Canonical interaction traces
+
+Use `Trace` when an interaction needs portable, reviewable evidence rather
+than an imperative test only. Events are a closed tagged union covering text,
+keys, semantic actions, session updates, resize, named snapshots, and scripted
+perform results. `CanonicalJSON` emits compact fixed-field-order JSON with one
+final LF. `ParseTrace` rejects unknown or extra union fields, duplicate or
+reordered representations, alternate whitespace, missing LF, and trailing
+values.
+
+```go
+typed, _ := tuittest.NewTypeEvent("show orders")
+checkpoint, _ := tuittest.NewSnapshotEvent("orders-typed")
+trace, _ := tuittest.NewTrace(tuittest.TraceOptions{
+    Width: 48, Height: 12,
+}, []tuittest.TraceEvent{typed, checkpoint})
+
+encoded := trace.CanonicalJSON()
+parsed, _ := tuittest.ParseTrace(encoded)
+replay, _ := parsed.Replay()
+screen, _ := replay.Screen("orders-typed")
+screen.AssertGolden(t, "testdata", "orders-typed")
+```
+
+`Replay` always creates and runs two independent real presentation models. It
+checks requested normal-mode dimensions, every line's display-cell width,
+cursor bounds, revision monotonicity, accessibility escape/alternate-screen
+policy, and model/semantic consistency after each event. It then compares the
+complete canonical `Screen` state and performed intents between runs. Each
+`ReplayStep` exposes the screen and its SHA-256 digest; a result is returned
+only after the two runs match.
+
+The repository's committed `lifecycle.trace.json` drives ready, typed,
+submitted, busy/resized, completed, and history-navigation states. Its four
+named checkpoints have committed styled, plain, and agent-report goldens. The
+ordinary typed-prompt interaction also uses committed fixtures; tests never
+prove a frame by writing it to a temporary directory and reading it back.
+
 ## Design boundaries
 
 | In scope | Out of scope |
@@ -207,6 +251,7 @@ err := driver.RunScenario(
 | Presentation model + FixedRenderer | Daemon / gRPC / tools |
 | Scripted Session SPI | Real OpenAI / OpenRouter |
 | Golden styled/plain frames | PTY screenshot OCR |
+| Strict JSON double replay + screen digests | OS font/pixel rasterization |
 | VT output/cursor/alternate-screen/resize | Arbitrary process launch in public API |
 | Repository-owned Unix PTY/Windows ConPTY acceptance | Production process ownership |
 | Agent text dumps | Visual font rasterization |

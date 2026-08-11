@@ -87,8 +87,15 @@ operations before returning a normal exit.
 The public `tuittest` package is the deterministic application-test seam. It
 drives the real private model and renderer without a PTY, daemon, network, or
 Bubble Tea event loop; exposes normalized styled, exact plain, cursor, and
-semantic captures; and requires explicit golden refresh. Its synchronous
-driver applies session state through validated `InjectUpdate` calls and never
+semantic captures; and requires explicit golden refresh. A canonical strict
+JSON `Trace` is an immutable tagged interaction recording. Replay constructs
+two fresh models, applies every event to both, validates independent size,
+cell-width, cursor, revision, accessibility, and alternate-screen invariants,
+and returns evidence only when the complete `Screen` state and performed
+intents match. Every event has a SHA-256 full-screen digest; named lifecycle
+checkpoints use committed styled, plain, and semantic-report goldens. Its
+synchronous driver applies session state through validated `InjectUpdate`
+calls and never
 arms a blocking receive command. Injected Session values serve only effect
 operations, are cancelled on quit, close, or timeout, and cannot turn a timed
 out operation into apparent success. `ScriptSession` separately remains a

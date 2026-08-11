@@ -1,0 +1,32 @@
+name: typed-prompt
+size: 48x12
+cursor: x=12 y=10 visible=true
+alt_screen: true accessible: false revision: 0
+status: [RECONNECTING] connecting to agent session
+prompt: "list owner"
+plain:
+Spice Agent                                     
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+> list owner                                    
+[RECONNECTING] connecting to agent session      
+styled:
+<ESC>[38;2;56;189;248m<ESC>[1mSpice Agent<ESC>[0m
+
+
+
+
+
+
+
+
+
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240mlist owner<ESC>[0m
+<ESC>[38;2;56;189;248m<ESC>[1m[RECONNECTING] connecting to agent session<ESC>[0m

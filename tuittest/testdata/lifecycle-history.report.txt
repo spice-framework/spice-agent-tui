@@ -1,0 +1,37 @@
+name: lifecycle-history
+size: 52x13
+cursor: x=13 y=11 visible=true
+alt_screen: true accessible: false revision: 3
+status: [READY] orders loaded
+prompt: "show orders"
+activity:
+  - connected
+  - orders loaded
+plain:
+Commerce                                            
+Module: orders                                      
+  payments                                          
+Activity                                            
+• connected                                         
+• orders loaded                                     
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+> show orders                                       
+[READY] orders loaded  enter submit                 
+styled:
+<ESC>[38;2;56;189;248m<ESC>[1mCommerce<ESC>[0m
+<ESC>[38;2;226;232;240m<ESC>[1mModule: <ESC>[0m<ESC>[38;2;226;232;240morders<ESC>[0m
+<ESC>[38;2;226;232;240m  payments<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1mActivity<ESC>[0m
+<ESC>[38;2;226;232;240m• connected<ESC>[0m
+<ESC>[38;2;226;232;240m• orders loaded<ESC>[0m
+
+
+
+
+
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240mshow orders<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1m[READY] orders loaded<ESC>[0m<ESC>[38;2;148;163;184m  enter submit<ESC>[0m

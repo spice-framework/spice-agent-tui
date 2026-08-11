@@ -51,11 +51,7 @@ func TestDriverTypesEditsAndSnapshotsPixelPerfectChrome(t *testing.T) {
 			t.Fatalf("line %d width = %d, want 48 (%q)", index, tuittest.CellWidth(line), line)
 		}
 	}
-	dir := t.TempDir()
-	if err := writeGoldens(dir, "typed-prompt", screen); err != nil {
-		t.Fatal(err)
-	}
-	if err := screen.CompareGolden(dir, "typed-prompt"); err != nil {
+	if err := screen.CompareGolden("testdata", "typed-prompt"); err != nil {
 		t.Fatal(err)
 	}
 }

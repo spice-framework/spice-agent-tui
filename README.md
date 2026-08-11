@@ -24,8 +24,9 @@ The implemented slice includes:
   signatures expose no Bubble Tea or internal types;
 - canonical `@UIShell` and `@UIRenderer` provider annotations;
 - explicit `/autoconfigure` fallback beans proven by committed generated Go; and
-- an agent-friendly `tuittest` harness for scripted interaction, pixel-perfect
-  goldens, bounded VT cell/cursor/alternate-screen conformance, and
+- an agent-friendly `tuittest` harness for canonical strict-JSON interaction
+  traces, deterministic double replay, committed cell-accurate goldens,
+  bounded VT cell/cursor/alternate-screen conformance, and
   repository-owned real Unix PTY/Windows ConPTY acceptance (see
   [`docs/tuittest.md`](docs/tuittest.md)); and
 - a removable, nested

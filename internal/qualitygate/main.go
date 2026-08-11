@@ -35,6 +35,9 @@ const (
 	minimumCoverage              = 85.0
 	minimumSemanticShellCoverage = 85.0
 	releaseWorkflowCommit        = "0fcd43dc8b41fad56c231d0e136ad8c762276ed5"
+	requiredGitAttributes        = "* text=auto eol=lf\n*.pb -text\n*.png -text\n" +
+		"/tuittest/testdata/*.plain.golden whitespace=-blank-at-eol\n" +
+		"/tuittest/testdata/*.report.txt whitespace=-blank-at-eol\n"
 )
 
 var output io.Writer = os.Stdout
@@ -108,6 +111,7 @@ func run(ctx context.Context, root, mode string) error {
 				{"lint and nil safety", func() error { return lint(ctx, root) }},
 				{"security", func() error { return security(ctx, root) }},
 				test,
+				{"bounded fuzz smoke", func() error { return fuzzTests(ctx, root) }},
 				{"race tests", func() error { return tests(ctx, root, true) }},
 				{"coverage", func() error { return coverage(ctx, root) }},
 				{"offline vendor", func() error { return offline(ctx, root) }},
@@ -131,6 +135,25 @@ func run(ctx context.Context, root, mode string) error {
 	}
 	_, err := fmt.Fprintln(output, "==> all verification passed")
 	return err
+}
+
+func fuzzTests(ctx context.Context, root string) error {
+	environment := map[string]string{
+		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOSUMDB": "off",
+		"GOTOOLCHAIN": "local", "GOWORK": "off",
+	}
+	for _, target := range []string{"FuzzTraceCanonicalReplay", "FuzzVirtualTerminalChunking"} {
+		if err := command(ctx, root, environment, "go", fuzzArguments(target)...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func fuzzArguments(target string) []string {
+	return []string{
+		"test", "-run=^$", "-fuzz=^" + target + "$", "-fuzztime=1s", "-parallel=1", "./tuittest",
+	}
 }
 
 func checkSpiceComposition(ctx context.Context, root string) error {
@@ -349,7 +372,7 @@ func checkRepositoryPortability(root string) error {
 	if err != nil {
 		return fmt.Errorf("read .gitattributes: %w", err)
 	}
-	if string(attributes) != "* text=auto eol=lf\n*.pb -text\n*.png -text\n" {
+	if string(attributes) != requiredGitAttributes {
 		return errors.New(".gitattributes must enforce LF text and preserve binary protocol/image files")
 	}
 	workflow, err := os.ReadFile(filepath.Join(root, ".github", "workflows", "ci.yml")) // #nosec G304 -- repository-owned path.

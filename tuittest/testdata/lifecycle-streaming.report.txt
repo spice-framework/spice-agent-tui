@@ -1,0 +1,37 @@
+name: lifecycle-streaming
+size: 52x13
+cursor: x=2 y=11 visible=true
+alt_screen: true accessible: false revision: 2
+status: [BUSY] loading orders
+prompt: ""
+activity:
+  - connected
+  - loading orders
+plain:
+Commerce                                            
+Module: orders                                      
+  payments                                          
+Activity                                            
+• connected                                         
+• loading orders                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+>                                                   
+[BUSY] loading orders  enter submit                 
+styled:
+<ESC>[38;2;56;189;248m<ESC>[1mCommerce<ESC>[0m
+<ESC>[38;2;226;232;240m<ESC>[1mModule: <ESC>[0m<ESC>[38;2;226;232;240morders<ESC>[0m
+<ESC>[38;2;226;232;240m  payments<ESC>[0m
+<ESC>[38;2;148;163;184m<ESC>[1mActivity<ESC>[0m
+<ESC>[38;2;226;232;240m• connected<ESC>[0m
+<ESC>[38;2;226;232;240m• loading orders<ESC>[0m
+
+
+
+
+
+<ESC>[38;2;56;189;248m<ESC>[1m> <ESC>[0m<ESC>[38;2;226;232;240m<ESC>[0m
+<ESC>[38;2;56;189;248m<ESC>[1m[BUSY] loading orders<ESC>[0m<ESC>[38;2;148;163;184m  enter submit<ESC>[0m

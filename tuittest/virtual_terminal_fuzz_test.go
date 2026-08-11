@@ -32,15 +32,15 @@ func FuzzVirtualTerminalChunking(f *testing.F) {
 				t.Fatal(writeErr)
 			}
 		}
-		wholeScreen, err := whole.Screen("whole")
+		wholeScreen, err := whole.Screen("chunking")
 		if err != nil {
 			t.Fatal(err)
 		}
-		chunkedScreen, err := chunked.Screen("chunked")
+		chunkedScreen, err := chunked.Screen("chunking")
 		if err != nil {
 			t.Fatal(err)
 		}
-		if wholeScreen.Plain() != chunkedScreen.Plain() {
+		if wholeScreen.Digest() != chunkedScreen.Digest() {
 			t.Fatalf("chunked terminal output differs\n%s", wholeScreen.Diff(chunkedScreen))
 		}
 	})

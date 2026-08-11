@@ -15,7 +15,8 @@ This repository does not maintain a second mutable checklist.
 - the Bubble Tea shell, model, renderers, prompt editor, commands, key bindings,
   status presentation, themes, and accessibility behavior; and
 - the deterministic `tuittest` harness for semantic interaction,
-  pixel-accurate captures, and output-only VT conformance without a daemon or
+  cell-accurate captures, canonical strict-JSON double replay, committed
+  lifecycle goldens, and output-only VT conformance without a daemon or
   network; repository acceptance separately composes it with the exact test
   executable under a real Unix PTY or Windows ConPTY without adding process
   launch to the public API.
