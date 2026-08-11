@@ -37,6 +37,19 @@ jobs:
         run: go run ./internal/qualitygate -mode=tools-bootstrap
       - name: Run complete local quality contract
         run: go run ./internal/qualitygate -mode=verify
+      - name: Render deterministic human visual-QA artifacts
+        if: runner.os == 'Linux'
+        env:
+          SPICE_TUI_VISUAL_ARTIFACT_DIR: ${{ runner.temp }}/spice-tui-visuals
+        run: go test -mod=vendor ./tuittest -run '^TestWriteDeterministicVisualArtifacts$' -count=1
+      - name: Upload deterministic human visual-QA artifacts
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: spice-tui-visuals
+          path: ${{ runner.temp }}/spice-tui-visuals
+          if-no-files-found: error
+          retention-days: 14
 
   required:
     name: Required CI

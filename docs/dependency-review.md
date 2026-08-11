@@ -116,6 +116,27 @@ sequences, regional indicators, or variation-selector clusters. Work remains
 bounded by the 4 KiB prompt limit. The package performs no I/O, persistence,
 telemetry, network access, or background work.
 
+### Go x/image v0.39.0 and x/text v0.36.0
+
+`golang.org/x/image` is pinned directly at v0.39.0 and brings
+`golang.org/x/text` v0.36.0 transitively. Both are maintained by the Go project
+and use the Go BSD-3-Clause license. Only the `tuittest` human visual-QA helper
+imports x/image: it parses the package's embedded Go Mono TTF, performs
+in-memory glyph drawing, and encodes PNG bytes. x/text supplies the pinned
+font/parser graph. Neither dependency adds filesystem discovery, process
+launch, logging, telemetry, persistence, network access, or background work.
+The v0.39.0 minimum includes the upstream fix for GO-2026-4962 in malicious
+SFNT decoding; the initially evaluated v0.25.0 is intentionally rejected by
+the repository vulnerability gate.
+
+The renderer accepts only an already bounded immutable `Screen`, caps scale at
+2, uses the product's existing terminal dimension bounds, adds no PNG metadata,
+and substitutes a deterministic outlined cell for glyphs absent from Go Mono.
+Its output is explicitly non-authoritative; Screen/VT evidence and the native
+PTY/ConPTY suite remain release gates. Any upgrade requires font-byte and PNG
+digest review, Unicode fallback, concurrency/race, license, vulnerability,
+offline-vendor, and Linux/Windows determinism evidence.
+
 ### Transitive terminal dependencies
 
 Bubble Tea's selected graph includes terminal capability, input cancellation,
@@ -154,3 +175,10 @@ goimports/x-tools 0.48.0, gosec 2.28.0, govulncheck 1.1.4, and NilAway at
 downloads the complete product and tools graphs through private alternate
 module files, then every ordinary gate runs with `GOPROXY=off`, `GOWORK=off`,
 and the selected exact Go 1.26.5 executable.
+
+The CI-only `actions/upload-artifact` action is pinned to v7.0.1 commit
+`043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` and is MIT licensed. It uploads
+only repository-generated synthetic lifecycle PNGs and their deterministic
+manifest, receives no secrets, errors when output is absent, and retains the
+artifact for 14 days. The repository identity gate rejects a floating or
+changed action reference.

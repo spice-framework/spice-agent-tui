@@ -27,7 +27,8 @@ not an older `go` that may appear first on `PATH`.
   single-CPU samples with their offline vendor graphs.
 - `make verify` adds lint, NilAway, gosec, govulncheck, race tests, coverage, and
   vendor-offline tests/builds. It also runs one second each of the canonical
-  trace replay and VT chunk-boundary fuzz targets with a single worker,
+  trace replay, VT chunk-boundary, and accessible-Unicode/control fuzz targets
+  with a single worker,
   including the annotation tool smoke path, real
   pinned Spice compiler fixtures for alias acceptance and invalid result types,
   and byte-current generated public auto-configuration composition.

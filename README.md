@@ -26,7 +26,9 @@ The implemented slice includes:
 - explicit `/autoconfigure` fallback beans proven by committed generated Go; and
 - an agent-friendly `tuittest` harness for canonical strict-JSON interaction
   traces, deterministic double replay, committed cell-accurate goldens,
-  bounded VT cell/cursor/alternate-screen conformance, and
+  accessibility/contrast audits, keyboard-only complex-Unicode lifecycle
+  coverage, non-authoritative embedded-font PNG review artifacts, bounded VT
+  cell/cursor/alternate-screen conformance, and
   repository-owned real Unix PTY/Windows ConPTY acceptance (see
   [`docs/tuittest.md`](docs/tuittest.md)); and
 - a removable, nested

@@ -35,6 +35,7 @@ const (
 	minimumCoverage              = 85.0
 	minimumSemanticShellCoverage = 85.0
 	releaseWorkflowCommit        = "0fcd43dc8b41fad56c231d0e136ad8c762276ed5"
+	uploadArtifactCommit         = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
 	requiredGitAttributes        = "* text=auto eol=lf\n*.pb -text\n*.png -text\n" +
 		"/tuittest/testdata/*.plain.golden whitespace=-blank-at-eol\n" +
 		"/tuittest/testdata/*.report.txt whitespace=-blank-at-eol\n"
@@ -142,7 +143,9 @@ func fuzzTests(ctx context.Context, root string) error {
 		"GOFLAGS": "-mod=vendor", "GOPROXY": "off", "GOSUMDB": "off",
 		"GOTOOLCHAIN": "local", "GOWORK": "off",
 	}
-	for _, target := range []string{"FuzzTraceCanonicalReplay", "FuzzVirtualTerminalChunking"} {
+	for _, target := range []string{
+		"FuzzTraceCanonicalReplay", "FuzzVirtualTerminalChunking", "FuzzAccessibleUnicodeCorpus",
+	} {
 		if err := command(ctx, root, environment, "go", fuzzArguments(target)...); err != nil {
 			return err
 		}
@@ -224,6 +227,8 @@ func checkIdentity(root string) error {
 		"github.com/charmbracelet/x/ansi v0.11.7",
 		"github.com/charmbracelet/x/term v0.2.2",
 		"github.com/charmbracelet/x/vt v0.0.0-20260803091719-3755ebad01b1",
+		"golang.org/x/image v0.39.0",
+		"golang.org/x/text v0.36.0",
 		coreModule + " " + coreVersion,
 		toolchainModule + " " + toolchainVersion,
 		"\t" + annotationTool + "\n",
@@ -384,6 +389,19 @@ func checkRepositoryPortability(root string) error {
 	verify := strings.Index(text, "go run ./internal/qualitygate -mode=verify")
 	if bootstrap < 0 || verify <= bootstrap {
 		return errors.New("CI quality jobs must bootstrap pinned tools before offline verification")
+	}
+	upload := "uses: actions/upload-artifact@" + uploadArtifactCommit
+	if strings.Count(text, upload) != 1 || strings.Contains(text, "uses: actions/upload-artifact@v") {
+		return fmt.Errorf("CI must use exactly one %q visual-artifact upload", upload)
+	}
+	for _, required := range []string{
+		"SPICE_TUI_VISUAL_ARTIFACT_DIR:",
+		"TestWriteDeterministicVisualArtifacts",
+		"name: spice-tui-visuals",
+	} {
+		if strings.Count(text, required) != 1 {
+			return fmt.Errorf("CI visual-artifact contract must contain exactly one %q", required)
+		}
 	}
 	return nil
 }

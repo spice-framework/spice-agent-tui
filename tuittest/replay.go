@@ -219,16 +219,7 @@ func (reference replayReference) validateCommon(screen Screen, driver *Driver) e
 }
 
 func (replayReference) validateAccessible(screen Screen) error {
-	if screen.AlternateScreen() {
-		return errors.New("accessible screen requested alternate-screen mode")
-	}
-	if _, _, visible := screen.Cursor(); visible {
-		return errors.New("accessible screen requested cursor control")
-	}
-	if strings.Contains(screen.Styled(), "<ESC>") || strings.ContainsRune(screen.Styled(), '\x1b') {
-		return errors.New("accessible screen contains terminal escapes")
-	}
-	return nil
+	return screen.ValidateAccessibility()
 }
 
 func (reference replayReference) validateNormal(screen Screen) error {
@@ -250,6 +241,12 @@ func (reference replayReference) validateNormal(screen Screen) error {
 	for index, line := range screen.Lines() {
 		if width := CellWidth(line); width != reference.width {
 			return fmt.Errorf("normal screen line %d width = %d, want %d", index, width, reference.width)
+		}
+	}
+	statusLabel := "[" + strings.ToUpper(screen.StatusLevel()) + "]"
+	if CellWidth(statusLabel) <= screen.Width() {
+		if err := screen.ValidateStatusSemantics(); err != nil {
+			return err
 		}
 	}
 	return nil

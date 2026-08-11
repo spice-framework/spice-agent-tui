@@ -69,9 +69,25 @@ func TestRepositoryPortabilityRequiresLFAndExplicitToolBootstrap(t *testing.T) {
 	writeFile(t, root, ".github/workflows/ci.yml", `steps:
   - run: go run ./internal/qualitygate -mode=tools-bootstrap
   - run: go run ./internal/qualitygate -mode=verify
+  - env:
+      SPICE_TUI_VISUAL_ARTIFACT_DIR: artifacts
+    run: go test -run TestWriteDeterministicVisualArtifacts ./tuittest
+  - uses: actions/upload-artifact@`+uploadArtifactCommit+`
+    with:
+      name: spice-tui-visuals
 `)
 	if err := checkRepositoryPortability(root); err != nil {
 		t.Fatal(err)
+	}
+	workflow, err := os.ReadFile(filepath.Join(root, ".github", "workflows", "ci.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, ".github/workflows/ci.yml", strings.Replace(
+		string(workflow), uploadArtifactCommit, strings.Repeat("0", 40), 1,
+	))
+	if err := checkRepositoryPortability(root); err == nil || !strings.Contains(err.Error(), "upload") {
+		t.Fatalf("floating artifact action error = %v", err)
 	}
 
 	writeFile(t, root, ".github/workflows/ci.yml", `steps:
@@ -403,6 +419,12 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	writeFile(t, root, ".github/workflows/ci.yml", `steps:
   - run: go run ./internal/qualitygate -mode=tools-bootstrap
   - run: go run ./internal/qualitygate -mode=verify
+  - env:
+      SPICE_TUI_VISUAL_ARTIFACT_DIR: artifacts
+    run: go test -run TestWriteDeterministicVisualArtifacts ./tuittest
+  - uses: actions/upload-artifact@`+uploadArtifactCommit+`
+    with:
+      name: spice-tui-visuals
 `)
 	writeFile(t, root, ".github/workflows/release.yml", validReleaseWorkflow())
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
@@ -433,6 +455,14 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
 	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "github.com/Kodecable/crosspty") {
 		t.Fatalf("checkIdentity(stale native terminal) error = %v", identityErr)
 	}
+	writeFile(t, root, "go.mod", strings.Replace(validMod, "golang.org/x/image v0.39.0", "golang.org/x/image v0.38.0", 1))
+	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "golang.org/x/image") {
+		t.Fatalf("checkIdentity(stale image renderer) error = %v", identityErr)
+	}
+	writeFile(t, root, "go.mod", strings.Replace(validMod, "golang.org/x/text v0.36.0", "golang.org/x/text v0.35.0", 1))
+	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "golang.org/x/text") {
+		t.Fatalf("checkIdentity(stale font parser) error = %v", identityErr)
+	}
 	writeFile(t, root, "go.mod", validMod+"\nreplace charm.land/bubbletea/v2 => ../local\n")
 	if identityErr := checkIdentity(root); identityErr == nil || !strings.Contains(identityErr.Error(), "unreplaced") {
 		t.Fatalf("checkIdentity(replaced Bubble Tea) error = %v", identityErr)
@@ -457,8 +487,10 @@ func validIdentityGoMod() string {
 		"\tgithub.com/Kodecable/crosspty v1.1.0\n" +
 		"\tgithub.com/charmbracelet/x/ansi v0.11.7\n" +
 		"\tgithub.com/charmbracelet/x/term v0.2.2\n" +
-		"\tgithub.com/charmbracelet/x/vt v0.0.0-20260803091719-3755ebad01b1\n\t" + coreModule + " " + coreVersion + "\n)\n\n" +
-		"require " + toolchainModule + " " + toolchainVersion + " // indirect\n"
+		"\tgithub.com/charmbracelet/x/vt v0.0.0-20260803091719-3755ebad01b1\n\t" + coreModule + " " + coreVersion + "\n" +
+		"\tgolang.org/x/image v0.39.0\n)\n\n" +
+		"require (\n\t" + toolchainModule + " " + toolchainVersion + " // indirect\n" +
+		"\tgolang.org/x/text v0.36.0 // indirect\n)\n"
 }
 
 func validReleaseWorkflow() string {

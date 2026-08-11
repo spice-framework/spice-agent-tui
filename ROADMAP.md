@@ -16,7 +16,9 @@ This repository does not maintain a second mutable checklist.
   status presentation, themes, and accessibility behavior; and
 - the deterministic `tuittest` harness for semantic interaction,
   cell-accurate captures, canonical strict-JSON double replay, committed
-  lifecycle goldens, and output-only VT conformance without a daemon or
+  lifecycle goldens, accessibility/contrast and complex-Unicode keyboard
+  proofs, non-authoritative deterministic PNG review artifacts, and output-only
+  VT conformance without a daemon or
   network; repository acceptance separately composes it with the exact test
   executable under a real Unix PTY or Windows ConPTY without adding process
   launch to the public API.

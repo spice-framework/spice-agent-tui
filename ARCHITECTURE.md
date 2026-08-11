@@ -101,6 +101,14 @@ operations, are cancelled on quit, close, or timeout, and cannot turn a timed
 out operation into apparent success. `ScriptSession` separately remains a
 cancellation-aware receive queue for full shell/facade tests.
 
+Accessibility evidence requires explicit plain-text status labels and complete
+semantic status messages, rejects terminal control strings, and drives the
+entire lifecycle through injected keyboard bindings. Shipped theme roles are
+audited against documented light/dark backgrounds at the WCAG ordinary-text
+threshold. A pinned embedded-font renderer creates deterministic PNGs only as
+short-lived human CI artifacts; it neither interprets styled terminal bytes nor
+replaces Screen digests, cell goldens, VT state, or native terminal evidence.
+
 The same package owns an output-only bounded virtual terminal. It interprets
 real VT bytes into the existing immutable `Screen` contract, including Unicode
 cells, cursor visibility and position, alternate-screen transitions, and

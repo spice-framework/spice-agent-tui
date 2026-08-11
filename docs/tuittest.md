@@ -22,7 +22,12 @@ UI:
 4. **terminal-verifiable** (interpreted VT cells, Unicode width, cursor,
    alternate screen, resize, bounded raw transcript, and event-driven waits);
 5. **replayable** (canonical strict-JSON traces, full-state digests after every
-   event, and two fresh model runs that must match exactly).
+   event, and two fresh model runs that must match exactly);
+6. **accessibility-auditable** (status semantics independent of color,
+   terminal-control rejection, keyboard-only lifecycle coverage, and complex
+   Unicode corpora); and
+7. **human-reviewable** (deterministic PNG renderings backed by an embedded,
+   pinned font, without promoting raster output to an acceptance authority).
 
 ## Quick start
 
@@ -189,10 +194,43 @@ For normal (non-accessible) mode:
 Normal comparison never creates missing fixtures. Set `UPDATE_GOLDEN=1`
 explicitly to create or replace all three artifacts.
 
-Accessible mode emits a dense semantic transcript (no fixed padding, no ANSI).
-The authoritative contract is terminal cells and VT state. Font rasterization,
-OCR, and operating-system screenshots are intentionally not release gates in
-this layer.
+Accessible mode emits a dense semantic transcript (no fixed padding, ANSI,
+CSI/OSC/C0/C1 controls, alternate-screen state, or cursor control).
+`Screen.ValidateAccessibility` checks that contract and requires the complete
+`[LEVEL] message` status meaning in plain text. `ValidateStatusSemantics`
+requires the visible level label in either mode, so success, progress,
+disconnect, warning, and failure never depend on palette color. Repository
+tests drive submit, respond, cancel, editing, history, and quit entirely by
+keyboard, and cover combining marks, emoji ZWJ clusters, CJK cells, and natural
+bidirectional Hebrew/Arabic text.
+
+### Palette contrast
+
+`AuditThemeContrast` checks every shipped semantic text role against the
+documented reference background: `#ffffff` for `spice-light` and `#020617` for
+`spice-dark`. The repository requires `MinimumTextContrast == 4.5`, the
+[WCAG 2.2 AA minimum for ordinary text](https://www.w3.org/TR/WCAG22/#contrast-minimum).
+This is deliberately the ordinary-text threshold rather than the more lenient
+large-text threshold because terminal cell size and user scaling are outside
+the library's control. A terminal emulator can override RGB colors or the
+background, so the audit is a shipped-palette guarantee, not a claim about
+every user configuration. Status labels remain required even when all color is
+disabled.
+
+### Deterministic human visual artifacts
+
+`RenderPNG(screen, options)` renders the plain cell grid in memory with the Go
+Mono TTF embedded by pinned `golang.org/x/image v0.39.0`. It performs no system
+font lookup, timestamping, OCR, process launch, or network I/O. Unsupported
+glyph clusters use a stable digest-derived placeholder while preserving cell
+width. Identical inputs are byte-hashed in tests and exercised concurrently.
+
+CI writes synthetic ready, streaming, history, and accessible lifecycle PNGs,
+plus a manifest of Screen and PNG SHA-256 digests, to the
+`spice-tui-visuals` artifact for 14 days. The manifest records
+`authoritative: false`. PNGs exist only to make review convenient: committed
+plain/styled goldens, full `Screen` digests, strict double replay, VT cells, and
+the unchanged native PTY/ConPTY gate remain the acceptance authorities.
 
 ## Scenario helpers
 
@@ -250,11 +288,11 @@ prove a frame by writing it to a temporary directory and reading it back.
 | --- | --- |
 | Presentation model + FixedRenderer | Daemon / gRPC / tools |
 | Scripted Session SPI | Real OpenAI / OpenRouter |
-| Golden styled/plain frames | PTY screenshot OCR |
+| Golden styled/plain frames | Screenshot OCR or OS pixel gates |
 | Strict JSON double replay + screen digests | OS font/pixel rasterization |
 | VT output/cursor/alternate-screen/resize | Arbitrary process launch in public API |
 | Repository-owned Unix PTY/Windows ConPTY acceptance | Production process ownership |
-| Agent text dumps | Visual font rasterization |
+| Agent text dumps + non-authoritative deterministic PNGs | System font discovery |
 
 This package imports `internal/presentation` (same module). External modules
 should depend only on `tuittest` and public `agenttui` contracts.
