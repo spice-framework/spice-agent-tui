@@ -40,3 +40,34 @@ shuffled and race tests, enforces 85% statement coverage, and builds offline.
 This is experimental evidence, not a production command or a compatibility
 freeze; authoritative phase status remains in the core Agent implementation
 ledger.
+
+## Released public-module version skew
+
+The repository also owns a distinct, explicit hosted matrix at
+[`compatibility/released-client-matrix.json`](../compatibility/released-client-matrix.json).
+It source-builds one semantic adapter against each exact public TUI generation
+(`v0.1.0-preview.1` and `v0.1.0-preview.2`) and each exact public Agent peer
+generation (`v0.1.0-preview.5` and `v0.1.0-preview.6`). The four old/current
+client-peer lanes run on both Linux and Windows.
+
+Each job creates a fresh temporary module, sets `GOWORK=off`, uses fresh module,
+GOPATH, and build caches, downloads only through the public Go proxy and SumDB,
+and verifies the published module sums and origin commits before compiling. The
+runner imports only public TUI, Agent client, protocol, endpoint, and local-IPC
+packages. It has no `replace` directive and no dependency on the checked-out
+production module.
+
+The semantic contract authenticates initialization, refuses a wrong token,
+then performs submit, respond, and cancel through the released TUI `Session`
+surface and released Agent client. Every lane is bounded and proves that the
+session, transport connection, peer, listener, and Unix socket are cleaned up.
+This is a released **Go module** source-build matrix; the manifest deliberately
+does not claim a prebuilt-executable matrix. Ordinary repository gates validate
+the manifest, runner digest, workflow, and public-only boundary offline. Only
+the dedicated `released-version-skew` mode and hosted matrix enable network
+access.
+
+The earlier source-built 1.2/1.3 peer proof and the specialized snapshot,
+deterministic replay, lifecycle, and accessibility tests remain in their
+original gates; the released-module matrix supplements rather than replaces
+them.

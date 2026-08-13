@@ -49,13 +49,18 @@ func main() {
 }
 
 func execute() int {
-	mode := flag.String("mode", "verify", "verification mode: tools-bootstrap, fast, check, fmt, benchmark, or verify")
+	mode := flag.String(
+		"mode",
+		"verify",
+		"verification mode: tools-bootstrap, released-version-skew, fast, check, fmt, benchmark, or verify",
+	)
+	lane := flag.String("lane", "", "released-version-skew lane")
 	flag.Parse()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 	root, err := repositoryRoot()
 	if err == nil {
-		err = run(ctx, root, *mode)
+		err = run(ctx, root, *mode, *lane)
 	}
 	if err != nil {
 		if _, writeErr := fmt.Fprintf(output, "quality gate failed: %v\n", err); writeErr != nil {
@@ -71,7 +76,7 @@ type step struct {
 	run  func() error
 }
 
-func run(ctx context.Context, root, mode string) error {
+func run(ctx context.Context, root, mode, lane string) error {
 	if runtime.Version() != requiredGoVersion {
 		return fmt.Errorf("go version is %s; require exactly %s", runtime.Version(), requiredGoVersion)
 	}
@@ -91,10 +96,8 @@ func run(ctx context.Context, root, mode string) error {
 	semanticShell := step{"semantic shell experiment", func() error {
 		return verifySemanticShellExperiment(ctx, root, mode)
 	}}
-	var steps []step
-	if networkAllowed(mode) {
-		steps = []step{identity, bootstrap}
-	} else {
+	steps, specialMode := specialModeSteps(ctx, root, mode, lane, identity, bootstrap)
+	if !specialMode {
 		switch mode {
 		case "fast":
 			steps = []step{identity, test, semanticShell}
@@ -138,6 +141,29 @@ func run(ctx context.Context, root, mode string) error {
 	}
 	_, err := fmt.Fprintln(output, "==> all verification passed")
 	return err
+}
+
+func specialModeSteps(
+	ctx context.Context,
+	root string,
+	mode string,
+	lane string,
+	identity step,
+	bootstrap step,
+) ([]step, bool) {
+	switch mode {
+	case "tools-bootstrap":
+		return []step{identity, bootstrap}, true
+	case "released-version-skew":
+		return []step{
+			identity,
+			{"released public-module version skew", func() error {
+				return runReleasedVersionSkew(ctx, root, lane)
+			}},
+		}, true
+	default:
+		return nil, false
+	}
 }
 
 func fuzzTests(ctx context.Context, root string) error {
@@ -197,7 +223,9 @@ func validateSpiceCompositionVerifyArguments(arguments []string) error {
 	return nil
 }
 
-func networkAllowed(mode string) bool { return mode == "tools-bootstrap" }
+func networkAllowed(mode string) bool {
+	return mode == "tools-bootstrap" || mode == "released-version-skew"
+}
 
 func benchmarks(ctx context.Context, root string) error {
 	environment := map[string]string{
@@ -281,6 +309,9 @@ func checkIdentity(root string) error {
 		return err
 	}
 	if err := checkRepositoryPortability(root); err != nil {
+		return err
+	}
+	if err := checkReleasedVersionSkewContract(root); err != nil {
 		return err
 	}
 	return checkReleaseWorkflow(root)

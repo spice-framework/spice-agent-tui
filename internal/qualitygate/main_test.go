@@ -22,6 +22,9 @@ func TestNetworkAllowedOnlyForBootstrap(t *testing.T) {
 	if !networkAllowed("tools-bootstrap") {
 		t.Fatal("networkAllowed(tools-bootstrap) = false")
 	}
+	if !networkAllowed("released-version-skew") {
+		t.Fatal("networkAllowed(released-version-skew) = false")
+	}
 }
 
 func TestBenchmarkArgumentsAreDeterministicAndBounded(t *testing.T) {
@@ -454,6 +457,17 @@ func TestCheckIdentityAndToolPins(t *testing.T) {
       name: spice-tui-visuals
 `)
 	writeFile(t, root, ".github/workflows/release.yml", validReleaseWorkflow())
+	copyIdentityFixtureFile(t, root, releasedVersionSkewManifest)
+	copyIdentityFixtureFile(t, root, releasedVersionSkewWorkflow)
+	copyIdentityFixtureTree(t, root, releasedVersionSkewRunner)
+	for _, evidence := range []string{
+		"experiments/semantic-shell/protocol_adapter_test.go",
+		"internal/presentation/model_test.go",
+		"tuittest/trace_test.go",
+		"tuittest/accessibility_lifecycle_test.go",
+	} {
+		copyIdentityFixtureFile(t, root, evidence)
+	}
 	writeStyleContractFixture(t, root)
 	writeFile(t, root, "tools/go.mod", strings.Join([]string{
 		"github.com/golangci/golangci-lint/v2 v2.12.2",
@@ -634,7 +648,7 @@ func TestCoverageParsingAndModes(t *testing.T) {
 	if _, err := totalCoverage("invalid"); err == nil {
 		t.Fatal("totalCoverage(invalid) error = nil")
 	}
-	if err := run(t.Context(), t.TempDir(), "unknown"); err == nil || !strings.Contains(err.Error(), "unknown mode") {
+	if err := run(t.Context(), t.TempDir(), "unknown", ""); err == nil || !strings.Contains(err.Error(), "unknown mode") {
 		t.Fatalf("run(unknown) error = %v", err)
 	}
 }
@@ -665,6 +679,49 @@ func writeFile(t *testing.T, root, name, content string) {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func copyIdentityFixtureFile(t *testing.T, destinationRoot, relative string) {
+	t.Helper()
+	sourceRoot, err := repositoryRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	content, err := os.ReadFile(filepath.Join(sourceRoot, filepath.FromSlash(relative)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, destinationRoot, relative, string(content))
+}
+
+func copyIdentityFixtureTree(t *testing.T, destinationRoot, relative string) {
+	t.Helper()
+	sourceRoot, err := repositoryRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := filepath.Join(sourceRoot, filepath.FromSlash(relative))
+	err = filepath.WalkDir(source, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		child, relativeErr := filepath.Rel(source, path)
+		if relativeErr != nil {
+			return relativeErr
+		}
+		content, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+		writeFile(t, destinationRoot, filepath.ToSlash(filepath.Join(relative, child)), string(content))
+		return nil
+	})
+	if err != nil {
 		t.Fatal(err)
 	}
 }

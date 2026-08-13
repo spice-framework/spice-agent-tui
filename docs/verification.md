@@ -6,7 +6,7 @@ On a fresh clone, explicitly populate the exact product and tools module graphs:
 make tools-bootstrap
 ```
 
-This is the only network-enabled quality mode. It requires Go 1.26.5, validates
+This is the ordinary dependency-bootstrap network mode. It requires Go 1.26.5, validates
 the repository identity and exact tool pins, downloads `all` from private
 temporary copies of the product, tools, and semantic-shell experiment module
 graphs, disables Go authentication,
@@ -14,6 +14,21 @@ and permits only the public checksum database and module proxy. It verifies that
 the repository is byte-for-byte unchanged even when a download fails. A
 repository without a tools module is valid. No API keys, tokens, passwords, or
 secrets are passed to the Go subprocess.
+
+The hosted released-client matrix uses a separate explicit network-enabled
+mode, one lane at a time:
+
+```text
+go run ./internal/qualitygate -mode=released-version-skew -lane=previous-client-current-peer
+```
+
+That mode creates fresh temporary caches and a temporary module containing the
+digest-pinned semantic runner. It downloads exact public TUI and Agent versions
+through `proxy.golang.org` and `sum.golang.org`, verifies sums and origin
+commits, then runs the authenticated semantic contract. The four lanes run on
+both Linux and Windows in `.github/workflows/released-version-skew.yml`.
+Ordinary `fast`, `check`, and `verify` remain offline and validate only the
+matrix manifest, runner source digest, and workflow boundary.
 
 Every child Go command uses the selected Go 1.26.5 binary from `runtime.GOROOT`,
 not an older `go` that may appear first on `PATH`.

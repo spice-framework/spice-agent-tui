@@ -1,0 +1,100 @@
+{
+  "schema": "spice.agent.tui.released-client-skew/v1alpha1",
+  "status": "hosted-linux-windows-gate",
+  "go": "go1.26.5",
+  "artifact_kind": "public-go-modules-source-built-test",
+  "prebuilt_executable_matrix": false,
+  "build_source": "public-proxy-and-sumdb",
+  "isolation": {
+    "gowork_off": true,
+    "fresh_module_caches": true,
+    "no_replace": true,
+    "public_proxy": true,
+    "public_sumdb": true
+  },
+  "clients": [
+    {
+      "role": "previous",
+      "module": "github.com/spice-framework/spice-agent-tui",
+      "version": "v0.1.0-preview.1",
+      "commit": "0e6cfb1a58b8bb2cf711fd36dfa66a8cd4e9867f",
+      "module_sum": "h1:r7MbWvF6UrvAV+CZwk6LNSbrZEV/VVIE6B0pmOmsbOA=",
+      "go_mod_sum": "h1:ZbrQXPLB1QWPuSa8fW/PsUu/LeAhFjKF4VyEL3LyrzI="
+    },
+    {
+      "role": "current",
+      "module": "github.com/spice-framework/spice-agent-tui",
+      "version": "v0.1.0-preview.2",
+      "commit": "11187714648fcd7832d18d70bca74e3079a38ecc",
+      "module_sum": "h1:WOyasmHWrLQHfXxFG20D/AufbJ9RnPrZvemaa+/mmac=",
+      "go_mod_sum": "h1:2EvMOqKnzX4wztrURPg7Q9pXiqQR2wsE0vv6a93BQt4="
+    }
+  ],
+  "peers": [
+    {
+      "role": "previous",
+      "module": "github.com/spice-framework/spice-agent",
+      "version": "v0.1.0-preview.5",
+      "commit": "3e8fe6406171a7e7f1765311a4fa7fc3b878e425",
+      "module_sum": "h1:rGND9DYx3pssliD1tZQOvPDOZ5GVfQLDc7VJQI3HLOM=",
+      "go_mod_sum": "h1:pbhYOeNgn4pCIhEmcdbjnFjJijY4ZSLM8ZHxaF2dxz0="
+    },
+    {
+      "role": "current",
+      "module": "github.com/spice-framework/spice-agent",
+      "version": "v0.1.0-preview.6",
+      "commit": "f771caa3b150d87845417c4e26938e2a889441a6",
+      "module_sum": "h1:XJKJge+xWP/FLNoL1/rXq8z8tdu/5iEkKfmu1dTgFms=",
+      "go_mod_sum": "h1:pbhYOeNgn4pCIhEmcdbjnFjJijY4ZSLM8ZHxaF2dxz0="
+    }
+  ],
+  "runner_dependencies": [
+    {
+      "module": "google.golang.org/grpc",
+      "version": "v1.83.0"
+    }
+  ],
+  "platforms": [
+    "linux/amd64",
+    "windows/amd64"
+  ],
+  "lanes": [
+    {
+      "id": "previous-client-previous-peer",
+      "client": "previous",
+      "peer": "previous"
+    },
+    {
+      "id": "previous-client-current-peer",
+      "client": "previous",
+      "peer": "current"
+    },
+    {
+      "id": "current-client-previous-peer",
+      "client": "current",
+      "peer": "previous"
+    },
+    {
+      "id": "current-client-current-peer",
+      "client": "current",
+      "peer": "current"
+    }
+  ],
+  "required_cases": [
+    "authenticated-initialize",
+    "semantic-submit",
+    "semantic-respond",
+    "semantic-cancel",
+    "wrong-token-refusal",
+    "bounded-cleanup"
+  ],
+  "preserved_specialized_evidence": [
+    "experiments/semantic-shell/protocol_adapter_test.go:TestSemanticShellAgentProtocolCompatibility",
+    "internal/presentation/model_test.go:TestModelAppliesRevisionedStreamingSnapshotsAndBoundsActivity",
+    "tuittest/trace_test.go:TestLifecycleTraceIsCanonicalDeterministicAndGolden",
+    "tuittest/accessibility_lifecycle_test.go:TestKeyboardOnlyLifecycleCoversEditingHistoryAndEveryIntent"
+  ],
+  "runner_source": "internal/qualitygate/testdata/releasedversionskew",
+  "runner_source_sha256": "41634ea0df73be43fe3c459aa689d38bf0ddbbc0f00d5f906b2a4590766ddf75",
+  "workflow": ".github/workflows/released-version-skew.yml"
+}

@@ -52,6 +52,10 @@ The repository now carries one bounded Phase 7 evidence module:
 semantic client against the published TUI module with no local replacement,
 Bubble Tea import, terminal plugin, or transport ownership. This local evidence
 now includes source-built Agent engine-protocol 1.2/1.3 peers over real local
-IPC on Linux and Windows. It intentionally makes no released-binary N/N-1
-claim and does not mark the cross-repository stabilization phase complete; the
-canonical ledger remains authoritative.
+IPC on Linux and Windows. A separate
+[`compatibility/released-client-matrix.json`](compatibility/released-client-matrix.json)
+gate source-builds exact public TUI preview1/preview2 clients against exact
+public Agent preview5/preview6 peers in all four old/current lanes on Linux and
+Windows. It makes no prebuilt-executable claim and does not mark the
+cross-repository stabilization phase complete; the canonical ledger remains
+authoritative.

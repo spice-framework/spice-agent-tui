@@ -34,7 +34,12 @@ The implemented slice includes:
 - a removable, nested
   [`experiments/semantic-shell`](experiments/semantic-shell) Phase 7 proof that
   consumes the released public Session API using only the standard library and
-  emits deterministic portable JSONL without Bubble Tea.
+  emits deterministic portable JSONL without Bubble Tea; and
+- a hosted Linux/Windows
+  [released public-module version-skew matrix](docs/semantic-shell-experiment.md#released-public-module-version-skew)
+  that source-builds exact TUI preview1/preview2 clients against Agent
+  preview5/preview6 peers across all four old/current lanes with no workspace
+  or replacement directive.
 
 ## Session boundary
 
