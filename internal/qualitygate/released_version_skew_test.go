@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -114,6 +115,28 @@ func TestCopyReleasedVersionSkewRunnerIsExact(t *testing.T) {
 	content, err := os.ReadFile(filepath.Join(destination, "nested", "proof.go"))
 	if err != nil || string(content) != "package proof\n" {
 		t.Fatalf("copied runner = %q, %v", content, err)
+	}
+}
+
+func TestRemoveReleasedVersionSkewTreeRestoresDownloadedModulePermissions(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "owned")
+	if err := os.MkdirAll(filepath.Join(root, "module-cache", "module"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(root, "module-cache", "module", "source.go")
+	if err := os.WriteFile(file, []byte("package module\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{file, filepath.Dir(file), filepath.Dir(filepath.Dir(file))} {
+		if err := os.Chmod(path, 0o500); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := removeReleasedVersionSkewTree(root); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(root); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("released version-skew tree remains: %v", err)
 	}
 }
 

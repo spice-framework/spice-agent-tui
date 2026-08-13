@@ -366,7 +366,7 @@ func runReleasedVersionSkew(ctx context.Context, root, laneID string) (returnErr
 	if err != nil {
 		return err
 	}
-	defer func() { returnErr = errors.Join(returnErr, os.RemoveAll(temporary)) }()
+	defer func() { returnErr = errors.Join(returnErr, removeReleasedVersionSkewTree(temporary)) }()
 	moduleRoot := filepath.Join(temporary, "module")
 	if err = copyReleasedVersionSkewRunner(
 		filepath.Join(root, filepath.FromSlash(manifest.RunnerSource)), moduleRoot,
@@ -402,6 +402,32 @@ func runReleasedVersionSkew(ctx context.Context, root, laneID string) (returnErr
 		peerGeneration.Version,
 	)
 	return err
+}
+
+func removeReleasedVersionSkewTree(path string) error {
+	root, err := os.OpenRoot(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	walkErr := fs.WalkDir(root.FS(), ".", func(name string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.Type()&fs.ModeSymlink != 0 {
+			return nil
+		}
+		mode := fs.FileMode(0o600)
+		if entry.IsDir() {
+			mode = 0o700
+		}
+		// #nosec G122 -- this root is a private freshly created temporary tree; root-scoped access prevents escape.
+		return root.Chmod(name, mode)
+	})
+	closeErr := root.Close()
+	return errors.Join(walkErr, closeErr, os.RemoveAll(path))
 }
 
 func selectReleasedVersionSkewLane(
