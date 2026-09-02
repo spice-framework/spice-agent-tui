@@ -7,7 +7,7 @@ toolchain go1.26.5
 require (
 	github.com/spice-framework/spice-agent v0.1.0-preview.5.0.20260810055539-b205307d3b5f
 	github.com/spice-framework/spice-agent-tui v0.1.0-preview.1
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.1
 )
 
 require (
